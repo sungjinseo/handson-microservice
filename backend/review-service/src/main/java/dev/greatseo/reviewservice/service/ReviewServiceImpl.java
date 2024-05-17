@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +26,13 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public List<ReviewDto> getReviews(int productId) {
+    public Flux<ReviewDto> getReviews(int productId) {
 
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
         if (productId == 213) {
             LOGGER.debug("No reviews found for productId: {}", productId);
-            return  new ArrayList<>();
+            return  Flux.just();
         }
 
         List<ReviewDto> list = new ArrayList<>();
@@ -41,6 +42,6 @@ public class ReviewServiceImpl implements ReviewService {
 
         LOGGER.debug("/reviews response size: {}", list.size());
 
-        return list;
+        return Flux.fromIterable(list);
     }
 }

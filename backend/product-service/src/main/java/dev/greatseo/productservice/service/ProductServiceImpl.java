@@ -14,6 +14,7 @@ import dev.greatseo.api.core.product.ProductService;
 import dev.greatseo.util.exceptions.InvalidInputException;
 import dev.greatseo.util.exceptions.NotFoundException;
 import dev.greatseo.util.http.ServiceUtil;
+import reactor.core.publisher.Mono;
 
 import java.net.URI;
 
@@ -62,7 +63,7 @@ public class ProductServiceImpl implements ProductService {
      * @return
      */
     @Override
-    public ResponseEntity<ProductDto> getProduct(int productId) {
+    public Mono<ProductDto> getProduct(int productId) {
 
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
@@ -72,7 +73,7 @@ public class ProductServiceImpl implements ProductService {
         ProductDto response = mapper.entityToApi(entity);
         LOGGER.debug("getProduct: found productId: {}", response.productId());
 
-        return ResponseEntity.ok().body(response);
+        return Mono.just(response);
 
     }
 

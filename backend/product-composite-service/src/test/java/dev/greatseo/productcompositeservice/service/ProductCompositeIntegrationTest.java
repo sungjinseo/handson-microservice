@@ -11,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import reactor.core.publisher.Mono;
@@ -25,6 +26,9 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
+
 @WebMvcTest(ProductCompositeIntegration.class)
 class ProductCompositeIntegrationTest extends RestDocsConfiguration {
 
@@ -34,7 +38,7 @@ class ProductCompositeIntegrationTest extends RestDocsConfiguration {
     ProductCompositeIntegration test;
 
     @Test
-    @DisplayName("NonReactive-테스트1. 상품 등록하기")
+    @DisplayName("NonReactive-테스트1. 상품 조회하기")
     void getProduct() throws Exception {
 
         int productId = 1;
@@ -43,11 +47,16 @@ class ProductCompositeIntegrationTest extends RestDocsConfiguration {
         given(test.getProduct(anyInt()))
                 .willReturn(Mono.just(new ProductDto(productId,"",1,"")));
 
-        ResultActions resultActions = mockMvc.perform(
+        MvcResult mvcResult = this.mockMvc.perform(
                 RestDocumentationRequestBuilders.get(uri, productId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-        ).andDo(
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        ResultActions resultActions = mockMvc
+                .perform(asyncDispatch(mvcResult))
+                .andDo(
                 MockMvcRestDocumentationWrapper.document(
                         "product-docs",
                         preprocessRequest(prettyPrint()),
