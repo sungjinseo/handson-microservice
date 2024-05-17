@@ -1,0 +1,52 @@
+buildscript {
+    ext {
+        mapStructVersion = '1.5.3.Final'
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.5'
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'dev.greatseo'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '17'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':common:api')
+    implementation project(':common:util')
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+
+    implementation 'org.projectlombok:lombok:1.18.28'
+    annotationProcessor 'org.projectlombok:lombok:1.18.28'
+
+    // MapStruct
+    annotationProcessor 'org.mapstruct:mapstruct-processor:' + mapStructVersion
+    testAnnotationProcessor 'org.mapstruct:mapstruct-processor:' + mapStructVersion
+    implementation 'org.mapstruct:mapstruct:' + mapStructVersion
+    implementation 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+
+    // Database
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+}
+
+jar {
+    enabled = false
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    jvmArgs '-Xshare:off' // JVM 아규먼트 설정
+}

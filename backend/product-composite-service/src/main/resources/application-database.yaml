@@ -1,0 +1,29 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  data:
+    mongodb:
+      auto-index-creation: true
+      authentication-database: admin
+      host: localhost
+      port: 3003
+      database: greatseo
+      username: greatseo
+      password: greatseo
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  data:
+    mongodb:
+      auto-index-creation: true
+      authentication-database: admin
+      host: localhost
+      port: 3003
+      database: greatseo
+      username: greatseo
+      password: greatseo

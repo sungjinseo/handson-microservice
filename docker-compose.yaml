@@ -1,0 +1,37 @@
+version: '3.7'
+
+services:
+  product:
+    build: backend/product-service
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  recommendation:
+    build: backend/recommendation-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  review:
+    build: backend/review-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  product-composite:
+    build: backend/product-composite-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+networks:
+  default:
+    name: greatseo
+    external: true

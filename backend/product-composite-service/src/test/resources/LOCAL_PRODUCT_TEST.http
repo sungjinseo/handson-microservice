@@ -1,0 +1,37 @@
+### 정보등록하기
+POST http://localhost:7001/product/
+Content-Type: application/json
+
+{
+  "productId": 333,
+  "name": "test",
+  "weight": "11"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.headers.valueOf("Location") === '/product/333', "Response status is not 200")
+        //client.assert(response.status === 201, "Response status is not 200");
+        ///product/333
+    });
+%}
+
+### 등록된 정보 확인하기
+GET http://localhost:7001/product/333
+Content-Type: application/json
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.body.productId === 333, "Response status is not 200");
+    });
+%}
+
+### 정보삭제하기
+DELETE http://localhost:7001/product/333
+Content-Type: application/json
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 204, "Response status is not 204");
+    });
+%}

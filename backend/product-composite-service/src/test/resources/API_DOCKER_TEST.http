@@ -1,0 +1,3 @@
+### 200 default test
+GET http://localhost:8080/productDto-composite/1
+Accept: application/json

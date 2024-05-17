@@ -1,0 +1,17 @@
+#application.yml
+spring:
+  application:
+    name: product-composite-service
+  profiles:
+    active:
+      - local
+    group:
+      local:
+        - service-local
+        - database-local
+      docker:
+        - service-docker
+        - database-docker
+    include:
+      - service
+      - database

@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: product-service
+  profiles:
+    active:
+      - local
+
+logging:
+  level:
+    root: INFO
+    dev.greatseo.backend: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  data:
+    mongodb:
+      auto-index-creation: true
+      authentication-database: admin
+      host: localhost
+      port: 3003
+      database: greatseo
+      username: greatseo
+      password: greatseo
+
+server:
+  port: 7001
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  data:
+    mongodb:
+      auto-index-creation: true
+      authentication-database: admin
+      host: 172.26.0.3
+      port: 27017
+      database: greatseo
+      username: greatseo
+      password: greatseo
+
+server:
+  port: 8080

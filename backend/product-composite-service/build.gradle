@@ -1,0 +1,113 @@
+// 1. Import 추가
+import com.sun.security.ntlm.Server
+import org.hidetake.gradle.swagger.generator.GenerateSwaggerUI
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
+// 2. buildscript 추가
+buildscript {
+    ext {
+        restdocsApiSpecVersion = '0.17.1'
+        swaggerVersion = '2.18.2'
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.5'
+    id 'io.spring.dependency-management' version '1.1.4'
+
+    // 3. openAPI 플러그인 추가
+    id 'com.epages.restdocs-api-spec' version "${restdocsApiSpecVersion}"
+    // 4. swaggerUI 플러그인 추가
+    id 'org.hidetake.swagger.generator' version "${swaggerVersion}"
+
+}
+
+group = 'dev.greatseo.backend.composite.product'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '17'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// 5. 생성된 API 스펙이 어느 위치에 있는지 지정
+swaggerSources {
+    sample {
+        setInputFile(file("${project.buildDir}/api-spec/openapi3.yaml"))
+    }
+}
+
+// 6. openapi3 스펙 생성시 설정 정보
+openapi3 {
+    servers = [
+            { url = "http://localhost:8080" },
+            { url = "http://localhost:7000" },
+    ]
+    title = "Integration API 문서"
+    description = "RestDocsWithSwagger Docs"
+    version = "0.0.1"
+    format = "yaml"
+}
+
+
+dependencies {
+    implementation project(':common:api')
+    implementation project(':common:util')
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.projectlombok:lombok:1.18.28'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+
+    // 7. RestDocs 추가
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+    // 8. openAPI3 추가
+    testImplementation 'com.epages:restdocs-api-spec-mockmvc:' + restdocsApiSpecVersion
+    // 9. SwaggerUI 추가
+    swaggerUI 'org.webjars:swagger-ui:4.11.1'
+    testImplementation "com.epages:restdocs-api-spec-restassured:" + restdocsApiSpecVersion
+    testImplementation 'io.rest-assured:rest-assured'
+}
+
+// 10. openapi3가 먼저 실행 - doFrist를 통한 Header 설정 (글에서 자세하게 설명)
+tasks.withType(GenerateSwaggerUI) {
+    dependsOn 'openapi3'
+    doFirst {
+        def swaggerUIFile = file("${openapi3.outputDirectory}/openapi3.yaml")
+
+        def securitySchemesContent =  "  securitySchemes:\n" +  \
+                                      "    APIKey:\n" +  \
+                                      "      type: apiKey\n" +  \
+                                      "      name: Authorization\n" +  \
+                                      "      in: header\n" + \
+                                      "security:\n" +
+                "  - APIKey: []  # Apply the security scheme here"
+
+        swaggerUIFile.append securitySchemesContent
+    }
+}
+
+// 11. 생성된 openapi3 스펙을 기반으로 SwaggerUISample 생성 및 static/docs 패키지에 복사
+bootJar {
+    dependsOn generateSwaggerUISample
+    from("${generateSwaggerUISample.outputDir}") {
+        into 'static/docs'
+    }
+}
+
+
+
+jar {
+    enabled = false
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    jvmArgs '-Xshare:off' // JVM 아규먼트 설정
+}

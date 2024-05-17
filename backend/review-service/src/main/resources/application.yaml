@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: review-service
+  profiles:
+    active:
+      - local
+
+logging:
+  level:
+    root: INFO
+    dev.greatseo.backend: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+server:
+  port: 7003
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+server:
+  port: 8080
