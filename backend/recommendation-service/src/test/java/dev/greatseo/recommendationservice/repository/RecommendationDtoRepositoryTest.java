@@ -97,7 +97,6 @@ class RecommendationDtoRepositoryTest {
                 .verifyComplete();
 //        Flux<RecommendationEntity> entityList = repository.findByProductId(savedEntity.getProductId());
 //
-//        //리스트로 받기
 //        //assertEquals(entityList.collectList().block(), hasSize(1));
 //        assertEquals(entityList.count().block(), 1);
 //        assertEqualsRecommendation(savedEntity, entityList.blockFirst());
