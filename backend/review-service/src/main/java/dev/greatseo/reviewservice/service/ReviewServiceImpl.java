@@ -2,6 +2,8 @@ package dev.greatseo.reviewservice.service;
 
 import dev.greatseo.api.core.review.ReviewDto;
 import dev.greatseo.api.core.review.ReviewService;
+import dev.greatseo.reviewservice.repository.ReviewEntity;
+import dev.greatseo.reviewservice.repository.ReviewRepository;
 import dev.greatseo.util.exceptions.InvalidInputException;
 import dev.greatseo.util.http.ServiceUtil;
 import org.slf4j.Logger;
@@ -9,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Scheduler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +21,20 @@ public class ReviewServiceImpl implements ReviewService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReviewServiceImpl.class);
 
+    private final Scheduler scheduler;
+
     private final ServiceUtil serviceUtil;
 
+    private final ReviewRepository repository;
+
+    private final ReviewMapper mapper;
+
     @Autowired
-    public ReviewServiceImpl(ServiceUtil serviceUtil) {
+    public ReviewServiceImpl(Scheduler scheduler, ServiceUtil serviceUtil, ReviewRepository repository, ReviewMapper mapper) {
+        this.scheduler = scheduler;
         this.serviceUtil = serviceUtil;
+        this.repository = repository;
+        this.mapper = mapper;
     }
 
     @Override
@@ -30,18 +42,24 @@ public class ReviewServiceImpl implements ReviewService {
 
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
-        if (productId == 213) {
-            LOGGER.debug("No reviews found for productId: {}", productId);
-            return  Flux.just();
-        }
+        return asyncFlux(getByProductId(productId));
+    }
 
-        List<ReviewDto> list = new ArrayList<>();
-        list.add(new ReviewDto(productId, 1, "Author 1", "Subject 1", "Content 1", serviceUtil.getServiceAddress()));
-        list.add(new ReviewDto(productId, 2, "Author 2", "Subject 2", "Content 2", serviceUtil.getServiceAddress()));
-        list.add(new ReviewDto(productId, 3, "Author 3", "Subject 3", "Content 3", serviceUtil.getServiceAddress()));
+    protected List<ReviewDto> getByProductId(int productId){
+        List<ReviewEntity> entityList = repository.findByProductId(productId);
+        List<ReviewDto> reviewDtoList = mapper.entityListToApiList(entityList);
 
-        LOGGER.debug("/reviews response size: {}", list.size());
+        // 객체의 변화를 주는 것이 올바른가...
+        reviewDtoList.forEach(item ->{
+            item.setServiceAddress(serviceUtil.getServiceAddress());
+        });
 
-        return Flux.fromIterable(list);
+        LOGGER.info("getReview: response size: {}", reviewDtoList.size());
+
+        return reviewDtoList;
+    }
+
+    private <T> Flux<T> asyncFlux(Iterable<T> iterable) {
+        return Flux.fromIterable(iterable).publishOn(scheduler);
     }
 }

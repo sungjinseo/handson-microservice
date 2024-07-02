@@ -40,6 +40,7 @@ import reactor.core.publisher.Mono;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
+import static reactor.core.publisher.Flux.empty;
 
 @Component
 @CrossOrigin("*")
@@ -165,24 +166,36 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     @Override
     public Flux<RecommendationDto> getRecommendations(int productId) {
 
-        try {
-            String url = recommendationServiceUrl + productId;
+        String url = recommendationServiceUrl + productId;
 
-            LOGGER.debug("Will call getRecommendations API on URL: {}", url);
-            List<RecommendationDto> recommendationDtos = restTemplate.exchange(
-                    url,
-                    GET,
-                    null,
-                    new ParameterizedTypeReference<List<RecommendationDto>>() {}
-            ).getBody();
+        return webClient
+                .get()
+                .uri(url)
+                .retrieve()
+                .bodyToFlux(RecommendationDto.class).log()
+                .onErrorResume(error->empty());
 
-            LOGGER.debug("Found {} recommendations for a product with id: {}", recommendationDtos.size(), productId);
-            return Flux.fromIterable(recommendationDtos);
-
-        } catch (Exception ex) {
-            LOGGER.warn("Got an exception while requesting recommendations, return zero recommendations: {}", ex.getMessage());
-            return Flux.just();
-        }
+        /**
+         * blocking code
+         */
+//        try {
+//            String url = recommendationServiceUrl + productId;
+//
+//            LOGGER.debug("Will call getRecommendations API on URL: {}", url);
+//            List<RecommendationDto> recommendationDtos = restTemplate.exchange(
+//                    url,
+//                    GET,
+//                    null,
+//                    new ParameterizedTypeReference<List<RecommendationDto>>() {}
+//            ).getBody();
+//
+//            LOGGER.debug("Found {} recommendations for a product with id: {}", recommendationDtos.size(), productId);
+//            return Flux.fromIterable(recommendationDtos);
+//
+//        } catch (Exception ex) {
+//            LOGGER.warn("Got an exception while requesting recommendations, return zero recommendations: {}", ex.getMessage());
+//            return Flux.just();
+//        }
     }
 
     /**

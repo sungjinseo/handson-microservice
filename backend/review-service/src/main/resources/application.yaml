@@ -16,6 +16,20 @@ spring:
     activate:
       on-profile: local
 
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3002/greatseo?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: greatseo
+    password: greatseo
+  jpa:
+    database-platform: org.hibernate.dialect.MariaDB103Dialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true #To beautify or pretty print the SQL
+        show_sql: true #show sql
+
 server:
   port: 7003
 

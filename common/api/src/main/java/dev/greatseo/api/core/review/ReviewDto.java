@@ -5,7 +5,7 @@ public class ReviewDto {
     private final String author;
     private final String subject;
     private final String content;
-    private final String serviceAddress;
+    private String serviceAddress;
 
     public ReviewDto(int productId, int reviewId, String author, String subject, String content, String serviceAddress) {
         this.productId = productId;
@@ -35,4 +35,5 @@ public class ReviewDto {
     public String getServiceAddress() {
         return serviceAddress;
     }
+    public void setServiceAddress(String serviceAddress) { this.serviceAddress =serviceAddress;}
 }

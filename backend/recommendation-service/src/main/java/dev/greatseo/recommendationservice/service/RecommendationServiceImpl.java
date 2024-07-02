@@ -4,6 +4,7 @@ import dev.greatseo.api.core.recommendation.RecommendationDto;
 import dev.greatseo.api.core.recommendation.RecommendationService;
 import dev.greatseo.recommendationservice.repository.RecommendationRepository;
 import dev.greatseo.util.exceptions.InvalidInputException;
+import dev.greatseo.util.exceptions.NotFoundException;
 import dev.greatseo.util.http.ServiceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,8 @@ import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static reactor.core.publisher.Flux.error;
 
 @RestController
 public class RecommendationServiceImpl implements RecommendationService {
@@ -34,6 +37,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
         return repository.findByProductId(productId)
+                .switchIfEmpty(error(new NotFoundException("No recommendation found for productId: "+ productId)))
                 .log()
                 .map(mapper::entityToApi)
                 .map(item -> {

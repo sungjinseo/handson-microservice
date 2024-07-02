@@ -39,7 +39,7 @@ spring:
     mongodb:
       auto-index-creation: true
       authentication-database: admin
-      host: 172.26.0.3
+      host: r2dbc-mongo
       port: 27017
       database: greatseo
       username: greatseo
