@@ -1,3 +1,13 @@
+POST http://localhost:7000/product/
+Content-Type: application/json
+
+{
+  "productId": 333,
+  "name": "test",
+  "weight": "11"
+}
+
+
 ### 200 default test
 GET http://localhost:7000/productDto-composite/1
 Accept: application/json

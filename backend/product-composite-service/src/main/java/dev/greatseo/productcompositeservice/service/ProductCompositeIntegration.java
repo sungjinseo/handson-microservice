@@ -2,40 +2,40 @@ package dev.greatseo.productcompositeservice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.greatseo.api.core.product.ProductDto;
-import dev.greatseo.util.exceptions.InvalidInputException;
-import dev.greatseo.util.exceptions.NotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
 import dev.greatseo.api.core.product.ProductService;
 import dev.greatseo.api.core.recommendation.RecommendationDto;
 import dev.greatseo.api.core.recommendation.RecommendationService;
 import dev.greatseo.api.core.review.ReviewDto;
 import dev.greatseo.api.core.review.ReviewService;
+import dev.greatseo.api.event.Event;
+import dev.greatseo.util.exceptions.InvalidInputException;
+import dev.greatseo.util.exceptions.NotFoundException;
 import dev.greatseo.util.http.HttpErrorInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.stereotype.Component;
+import org.springframework.util.SerializationUtils;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -58,6 +58,9 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     private final String productServiceUrl;
     private final String recommendationServiceUrl;
     private final String reviewServiceUrl;
+    private final StreamBridge streamBridge;
+
+    private static final String PRODUCTS_PUBLISH = "products-out-0";
 
     @Autowired
     public ProductCompositeIntegration(WebClient.Builder webClient, ObjectMapper objMapper,
@@ -70,11 +73,13 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
                                        @Value("${app.review-service.host}") String reviewServiceHost,
                                        @Value("${app.review-service.port}") int    reviewServicePort,
 
-                                       RestTemplateBuilder restBuilder
+                                       RestTemplateBuilder restBuilder,
+                                       StreamBridge streamBridge
     ) {
         this.restTemplate = restBuilder.build();
         this.webClient = webClient.build();
         this.objMapper = objMapper;
+        this.streamBridge = streamBridge;
 
         productServiceUrl        = HTTP_BEGIN + productServiceHost + ":" + productServicePort + "/product/";
         recommendationServiceUrl = HTTP_BEGIN + recommendationServiceHost + ":" + recommendationServicePort + "/recommendation?productId=";
@@ -94,12 +99,15 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     @Override
     public ResponseEntity<ProductDto> createProduct(ProductDto body) {
         try {
-            String url = productServiceUrl;
-            LOGGER.debug("Will post a new product to URL: {}", url);
 
-            //ProductDto productDto = restTemplate.postForObject(url, body, ProductDto.class);
-            LOGGER.debug("Created a product with id: {}", body.productId());
 
+            final String messageKey = UUID.randomUUID().toString();
+            streamBridge.send(PRODUCTS_PUBLISH
+                    , MessageBuilder
+                            .withPayload(new Event(Event.Type.CREATE, body.productId(), SerializationUtils.serialize(body)))
+                            .setHeader("MESSAGE_KEY", messageKey)
+                            .build());
+            LOGGER.info("Publish the product by msgKey : {}", messageKey);
             return ResponseEntity.created(URI.create("/product/" + body.productId())).build();
 
         } catch (HttpClientErrorException ex) {
@@ -115,9 +123,6 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     public Mono<ProductDto> getProduct(int productId) {
 
         try {
-            /**
-             * NonBlocking
-             */
             String url = productServiceUrl + productId;
             LOGGER.debug("Will call the getProduct API on URL: {}", url);
 
@@ -128,16 +133,6 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
                     .bodyToMono(ProductDto.class)
                     .log()
                     .onErrorMap(WebClientResponseException.class, ex -> handleException(ex));
-            /**
-             * Blocking Code
-             */
-//            String url = productServiceUrl + productId;
-//            LOGGER.debug("Will call getProduct API on URL: {}", url);
-//
-//            ProductDto productDto = restTemplate.getForObject(url, ProductDto.class);
-//            LOGGER.debug("Found a product with id: {}", productDto.productId());
-//
-//            return ResponseEntity.ok().body(productDto);
 
         } catch (HttpClientErrorException ex) {
             throw handleHttpClientException(ex);

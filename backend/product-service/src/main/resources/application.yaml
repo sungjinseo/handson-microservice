@@ -26,6 +26,22 @@ spring:
       username: greatseo
       password: greatseo
 
+spring.cloud.stream:
+  defaultBinder: rabbit
+  bindings:
+    products-out-0:
+      destination: products
+      content-type: application/json
+    products-in-0:
+      destination: products
+      group: productGroup
+
+spring.rabbitmq:
+  host: 127.0.0.1
+  port: 5672
+  username: greatseo
+  password: greatseo
+
 server:
   port: 7001
 
