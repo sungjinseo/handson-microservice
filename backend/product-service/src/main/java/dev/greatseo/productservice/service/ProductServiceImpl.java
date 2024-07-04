@@ -19,6 +19,8 @@ import reactor.core.scheduler.Scheduler;
 
 import java.net.URI;
 
+import static reactor.core.publisher.Mono.error;
+
 @RestController
 public class ProductServiceImpl implements ProductService {
 
@@ -48,15 +50,20 @@ public class ProductServiceImpl implements ProductService {
      * @return
      */
     @Override
-    public ResponseEntity<ProductDto> createProduct(ProductDto body) {
-        try{
-            ProductEntity entity = repository.save(mapper.apiToEntity(body));
-            LOGGER.debug("createProduct: entity created for productId: {}", body.productId());
-            return ResponseEntity.created(URI.create("/product/" + entity.getProductId())).build();
+    public ProductDto createProduct(ProductDto body) {
 
-        } catch (DuplicateKeyException e){
-            throw new InvalidInputException("Duplicate key, Product Id: " + body.productId());
-        }
+        if (body.productId() < 1) throw new InvalidInputException("Invalid productId: " + body.productId());
+
+        ProductEntity entity = mapper.apiToEntity(body);
+        Mono<ProductDto> newEntity = repository.save(entity)
+                .log()
+                .onErrorMap(
+                        DuplicateKeyException.class,
+                        ex -> new InvalidInputException("Duplicate key, Product Id: " + body.productId()))
+                .map(e -> mapper.entityToApi(e));
+
+        return newEntity.block();
+
     }
 
     /**
@@ -68,13 +75,13 @@ public class ProductServiceImpl implements ProductService {
 
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
-        ProductEntity entity = repository.findByProductId(productId)
-                .orElseThrow(() -> new NotFoundException("No product found for productId: " + productId));
-
-        ProductDto response = mapper.entityToApi(entity);
-        LOGGER.debug("getProduct: found productId: {}", response.productId());
-
-        return Mono.just(response);
+        return repository.findByProductId(productId)
+                .switchIfEmpty(error(new NotFoundException("No product found for productId: " + productId)))
+                .log()
+                .map(e -> mapper.entityToApi(e))
+                .map(e -> {
+                    return new ProductDto(e.productId(), e.name(), e.weight(), serviceUtil.getServiceAddress());
+                });
 
     }
 
@@ -87,8 +94,10 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public ResponseEntity deleteProduct(int productId) {
+        if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
+
         LOGGER.debug("deleteProduct: tries to delete an entity with productId: {}", productId);
-        repository.findByProductId(productId).ifPresent(repository::delete);
+        repository.findByProductId(productId).log().map(e -> repository.delete(e)).flatMap(e -> e).block();
 
         return ResponseEntity.noContent().build();
     }

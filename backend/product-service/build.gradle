@@ -45,7 +45,8 @@ dependencies {
     //testImplementation('org.springframework.cloud:spring-cloud-stream-test-support')
 
     // Database
-    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    //implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
 }
 
 jar {

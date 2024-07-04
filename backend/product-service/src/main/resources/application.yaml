@@ -29,9 +29,6 @@ spring:
 spring.cloud.stream:
   defaultBinder: rabbit
   bindings:
-    products-out-0:
-      destination: products
-      content-type: application/json
     products-in-0:
       destination: products
       group: productGroup

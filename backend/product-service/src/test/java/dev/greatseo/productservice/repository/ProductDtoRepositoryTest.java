@@ -33,7 +33,7 @@ class ProductDtoRepositoryTest {
     public void setupDb() {
         repository.deleteAll();
         ProductEntity entity = new ProductEntity(1, "n", 1);
-        savedEntity = repository.save(entity);
+        savedEntity = repository.save(entity).block();
         assertEqualsProduct(entity, savedEntity);
     }
 
@@ -57,7 +57,7 @@ class ProductDtoRepositoryTest {
         ProductEntity newEntity = new ProductEntity(2, "n", 2);
         repository.save(newEntity);
 
-        ProductEntity foundEntity = repository.findById(newEntity.getId()).get();
+        ProductEntity foundEntity = repository.findById(newEntity.getId()).block();
         assertEqualsProduct(newEntity, foundEntity);
 
         assertEquals(2, repository.count());
@@ -69,7 +69,7 @@ class ProductDtoRepositoryTest {
         savedEntity.setName("n2");
         repository.save(savedEntity);
 
-        ProductEntity foundEntity = repository.findById(savedEntity.getId()).get();
+        ProductEntity foundEntity = repository.findById(savedEntity.getId()).block();
         assertEquals(1, (long)foundEntity.getVersion());
         assertEquals("n2", foundEntity.getName());
     }
@@ -78,13 +78,13 @@ class ProductDtoRepositoryTest {
     @DisplayName("NonReactive-테스트3. 상품 삭제하기")
     public void TEST3_DELETE() {
         repository.delete(savedEntity);
-        assertFalse(repository.existsById(savedEntity.getId()));
+        assertFalse(repository.existsById(savedEntity.getId()).block());
     }
 
     @Test
     @DisplayName("NonReactive-테스트4. 상품정보 단건 조회하기")
     public void TEST4_SELECT_BY_PRODUCT_ID() {
-        Optional<ProductEntity> entity = repository.findByProductId(savedEntity.getProductId());
+        Optional<ProductEntity> entity = repository.findByProductId(savedEntity.getProductId()).blockOptional();
         assertTrue(entity.isPresent());
         assertEqualsProduct(savedEntity, entity.get());
     }
@@ -103,8 +103,8 @@ class ProductDtoRepositoryTest {
     public void TEST6_optimisticLockError() {
 
         // Store the saved entity in two separate entity objects
-        ProductEntity entity1 = repository.findById(savedEntity.getId()).get();
-        ProductEntity entity2 = repository.findById(savedEntity.getId()).get();
+        ProductEntity entity1 = repository.findById(savedEntity.getId()).block();
+        ProductEntity entity2 = repository.findById(savedEntity.getId()).block();
 
         // Update the entity using the first entity object
         entity1.setName("n1");
@@ -120,35 +120,9 @@ class ProductDtoRepositoryTest {
         } catch (OptimisticLockingFailureException e) {}
 
         // Get the updated entity from the database and verify its new sate
-        ProductEntity updatedEntity = repository.findById(savedEntity.getId()).get();
+        ProductEntity updatedEntity = repository.findById(savedEntity.getId()).block();
         assertEquals(1, (int)updatedEntity.getVersion());
         assertEquals("n1", updatedEntity.getName());
     }
 
-    /**
-     * reactive 처리에서 페이징은 직접구현체로 만들어야함
-     */
-    @Test
-    @DisplayName("NonReactive-테스트7. 페이징 처리 테스트")
-    public void TEST7_paging() {
-
-        repository.deleteAll();
-
-        List<ProductEntity> newProducts = rangeClosed(1001, 1010)
-                .mapToObj(i -> new ProductEntity(i, "name " + i, i))
-                .collect(Collectors.toList());
-        repository.saveAll(newProducts);
-
-        Pageable nextPage = PageRequest.of(0, 4, ASC, "productId");
-        nextPage = testNextPage(nextPage, "[1001, 1002, 1003, 1004]", true);
-        nextPage = testNextPage(nextPage, "[1005, 1006, 1007, 1008]", true);
-        nextPage = testNextPage(nextPage, "[1009, 1010]", false);
-    }
-
-    private Pageable testNextPage(Pageable nextPage, String expectedProductIds, boolean expectsNextPage) {
-        Page<ProductEntity> productPage = repository.findAll(nextPage);
-        assertEquals(expectedProductIds, productPage.getContent().stream().map(p -> p.getProductId()).collect(Collectors.toList()).toString());
-        assertEquals(expectsNextPage, productPage.hasNext());
-        return productPage.nextPageable();
-    }
 }

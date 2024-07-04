@@ -1,5 +1,6 @@
 package dev.greatseo.productcompositeservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.greatseo.api.core.product.ProductDto;
 import dev.greatseo.api.core.product.ProductService;
@@ -97,21 +98,24 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
      * @return
      */
     @Override
-    public ResponseEntity<ProductDto> createProduct(ProductDto body) {
+    public ProductDto createProduct(ProductDto body) {
         try {
 
-
+            ObjectMapper mapper = new ObjectMapper();
             final String messageKey = UUID.randomUUID().toString();
             streamBridge.send(PRODUCTS_PUBLISH
                     , MessageBuilder
-                            .withPayload(new Event(Event.Type.CREATE, body.productId(), SerializationUtils.serialize(body)))
+                            .withPayload(new Event(Event.Type.CREATE, body.productId(), mapper.writeValueAsString(body)))
                             .setHeader("MESSAGE_KEY", messageKey)
                             .build());
             LOGGER.info("Publish the product by msgKey : {}", messageKey);
-            return ResponseEntity.created(URI.create("/product/" + body.productId())).build();
+            return body;
+            //return ResponseEntity.created(URI.create("/product/" + body.productId())).build();
 
         } catch (HttpClientErrorException ex) {
             throw handleHttpClientException(ex);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -20,7 +20,7 @@ public interface ProductService {
             value    = "/",
             consumes = "application/json",
             produces = "application/json")
-    ResponseEntity<ProductDto> createProduct(@RequestBody ProductDto body);
+    ProductDto createProduct(@RequestBody ProductDto body);
 
     /**
      * Sample usage: curl $HOST:$PORT/product/1

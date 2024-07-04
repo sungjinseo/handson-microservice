@@ -18,19 +18,10 @@ app:
 
 spring.cloud.stream:
   defaultBinder: rabbit
-  function:
-    definition: receiverMessageHandler
   bindings:
     products-out-0:
       destination: products
       content-type: application/json
-    products-in-0:
-      destination: products
-
-
-spring.cloud.stream.kafka.binder:
-  brokers: 127.0.0.1
-  defaultBrokerPort: 9092
 
 spring.rabbitmq:
   host: 127.0.0.1
