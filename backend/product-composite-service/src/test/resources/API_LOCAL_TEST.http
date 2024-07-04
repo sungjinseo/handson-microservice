@@ -2,7 +2,7 @@ POST http://localhost:7000/product/
 Content-Type: application/json
 
 {
-  "productId": 444,
+  "productId": 666,
   "name": "test",
   "weight": "11"
 }
