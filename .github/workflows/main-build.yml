@@ -36,76 +36,70 @@ jobs:
           - 3003:27017
 
     steps:
-      - name: Import DB seed data
-        #run: psql -d postgresql://postgres@localhost/postgres -f ddl.sql
-        # working-directory: ./test/data
-        env:
-          PGPASSWORD: postgres
-    
-      - name: 리포지토리를 가져옵니다
+      - name: 🍀 리포지토리를 가져옵니다
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.SUBMODULE_TOKEN }}
           submodules: recursive
 
-      - name: JDK 11을 설치합니다
+      - name: 🍀 JDK 11을 설치합니다
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Gradle 명령 실행을 위한 권한을 부여합니다
+      - name: 🍀 Gradle 명령 실행을 위한 권한을 부여합니다
         run: chmod +x ./gradlew
 
-      - name: Gradle build를 수행합니다
+      - name: 🍀 Gradle build를 수행합니다
         run: ./gradlew build
 
-      - name: 추천테스트 결과를 PR에 코멘트로 등록합니다
+      - name: 🍀 추천테스트 결과를 PR에 코멘트로 등록합니다
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
           files: '**/backend/recommendation/build/test-results/test/TEST-*.xml'
       
-      - name: 리뷰테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+      - name: 🍀 추천테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
         uses: mikepenz/action-junit-report@v3
         if: always()
         with:
           report_paths: '**/backend/recommendation/build/test-results/test/TEST-*.xml'
           token: ${{ github.token }}
 
-      - name: 리뷰테스트 결과를 PR에 코멘트로 등록합니다
+      - name: 🍀 리뷰테스트 결과를 PR에 코멘트로 등록합니다
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
           files: '**/backend/review/build/test-results/test/TEST-*.xml'
       
-      - name: 리뷰테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+      - name: 🍀 리뷰테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
         uses: mikepenz/action-junit-report@v3
         if: always()
         with:
           report_paths: '**/backend/review/build/test-results/test/TEST-*.xml'
           token: ${{ github.token }}
           
-      - name: 상품테스트 결과를 PR에 코멘트로 등록합니다
+      - name: 🍀 상품테스트 결과를 PR에 코멘트로 등록합니다
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
           files: '**/backend/product/build/test-results/test/TEST-*.xml'
       
-      - name: 상품테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+      - name: 🍀 상품테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
         uses: mikepenz/action-junit-report@v3
         if: always()
         with:
           report_paths: '**/backend/product/build/test-results/test/TEST-*.xml'
           token: ${{ github.token }}
 
-      - name: 통합테스트 결과를 PR에 코멘트로 등록합니다
+      - name: 🍀 통합테스트 결과를 PR에 코멘트로 등록합니다
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
           files: '**/backend/product-composite-service/build/test-results/test/TEST-*.xml'
       
-      - name: 통합테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+      - name: 🍀 통합테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
         uses: mikepenz/action-junit-report@v3
         if: always()
         with:
