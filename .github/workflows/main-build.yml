@@ -1,0 +1,107 @@
+name: automation integration
+
+on:
+  push:
+    branches:
+      - main
+      - release/*
+      - develop
+    #paths: 'backend/**'
+  pull_request:
+    branches:
+      - main
+      - release/*
+      - develop
+    #paths: 'backend/**'
+
+#defaults:
+#  run:
+#    working-directory: backend
+permissions: write-all
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: mongo
+        env:
+          MONGO_INITDB_ROOT_USERNAME: greatseo
+          MONGO_INITDB_ROOT_PASSWORD: greatseo
+          MONGO_INITDB_DATABASE: greatseo
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 3003:27017
+
+    steps:
+      - name: 🍀 리포지토리를 가져옵니다
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.SUBMODULE_TOKEN }}
+          submodules: recursive
+
+      - name: 🍀 JDK 11을 설치합니다
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 🍀 Gradle 명령 실행을 위한 권한을 부여합니다
+        run: chmod +x ./gradlew
+
+      - name: 🍀 Gradle build를 수행합니다
+        run: ./gradlew build
+
+      - name: 🍀 추천테스트 결과를 PR에 코멘트로 등록합니다
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: '**/backend/recommendation/build/test-results/test/TEST-*.xml'
+
+      - name: 🍀 추천테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+        uses: mikepenz/action-junit-report@v3
+        if: always()
+        with:
+          report_paths: '**/backend/recommendation/build/test-results/test/TEST-*.xml'
+          token: ${{ github.token }}
+
+      - name: 🍀 리뷰테스트 결과를 PR에 코멘트로 등록합니다
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: '**/backend/review/build/test-results/test/TEST-*.xml'
+
+      - name: 🍀 리뷰테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+        uses: mikepenz/action-junit-report@v3
+        if: always()
+        with:
+          report_paths: '**/backend/review/build/test-results/test/TEST-*.xml'
+          token: ${{ github.token }}
+
+      - name: 🍀 상품테스트 결과를 PR에 코멘트로 등록합니다
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: '**/backend/product/build/test-results/test/TEST-*.xml'
+
+      - name: 🍀 상품테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+        uses: mikepenz/action-junit-report@v3
+        if: always()
+        with:
+          report_paths: '**/backend/product/build/test-results/test/TEST-*.xml'
+          token: ${{ github.token }}
+
+      - name: 🍀 통합테스트 결과를 PR에 코멘트로 등록합니다
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: '**/backend/product-composite-service/build/test-results/test/TEST-*.xml'
+
+      - name: 🍀 통합테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+        uses: mikepenz/action-junit-report@v3
+        if: always()
+        with:
+          report_paths: '**/backend/product-composite-service/build/test-results/test/TEST-*.xml'
+          token: ${{ github.token }}
