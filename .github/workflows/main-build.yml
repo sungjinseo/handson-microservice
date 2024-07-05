@@ -37,13 +37,13 @@ jobs:
 
     steps:
       - name: 🍀 리포지토리를 가져옵니다
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.SUBMODULE_TOKEN }}
           submodules: recursive
 
-      - name: 🍀 JDK 11을 설치합니다
-        uses: actions/setup-java@v3
+      - name: 🍀 JDK 17을 설치합니다
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -60,7 +60,7 @@ jobs:
         with:
           files: '**/backend/recommendation-service/build/test-results/test/TEST-*.xml'
       - name: 🍀 추천테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
-        uses: mikepenz/action-junit-report@v3
+        uses: mikepenz/action-junit-report@v4
         if: always()
         with:
           report_paths: '**/backend/recommendation-service/build/test-results/test/TEST-*.xml'
@@ -72,7 +72,7 @@ jobs:
         with:
           files: '**/backend/review-service/build/test-results/test/TEST-*.xml'
       - name: 🍀 리뷰테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
-        uses: mikepenz/action-junit-report@v3
+        uses: mikepenz/action-junit-report@v4
         if: always()
         with:
           report_paths: '**/backend/review-service/build/test-results/test/TEST-*.xml'
@@ -83,7 +83,7 @@ jobs:
         with:
           files: '**/backend/product-service/build/test-results/test/TEST-*.xml'
       - name: 🍀 상품테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
-        uses: mikepenz/action-junit-report@v3
+        uses: mikepenz/action-junit-report@v4
         if: always()
         with:
           report_paths: '**/backend/product-service/build/test-results/test/TEST-*.xml'
@@ -95,7 +95,7 @@ jobs:
         with:
           files: '**/backend/product-composite-service/build/test-results/test/TEST-*.xml'
       - name: 🍀 통합테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
-        uses: mikepenz/action-junit-report@v3
+        uses: mikepenz/action-junit-report@v4
         if: always()
         with:
           report_paths: '**/backend/product-composite-service/build/test-results/test/TEST-*.xml'
