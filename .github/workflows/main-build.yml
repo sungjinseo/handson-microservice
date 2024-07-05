@@ -14,9 +14,9 @@ on:
       - develop
     #paths: 'backend/**'
 
-defaults:
-  run:
-    working-directory: backend
+#defaults:
+#  run:
+#    working-directory: backend
 
 jobs:
   build:
