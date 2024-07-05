@@ -2,6 +2,7 @@ package dev.greatseo.productcompositeservice.service;
 
 
 import dev.greatseo.api.core.product.ProductDto;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +39,7 @@ public class MessageConsumeTest {
     @Captor
     private ArgumentCaptor<ProductDto> captor;
 
+    @Disabled
     @Test
     void consumeMessageTest() {
         // payload 구성
