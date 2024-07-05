@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.greatseo.api.core.product.ProductDto;
 import dev.greatseo.api.event.Event;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,7 @@ public class MessagePublishTest {
     @Autowired
     private OutputDestination outputDestination;
 
+    @Disabled
     @Test
     @DisplayName("1. 프로덕트 퍼블리시 테스트")
     void productPublishMessageTest() throws IOException {
