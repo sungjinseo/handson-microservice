@@ -59,7 +59,6 @@ jobs:
         if: always()
         with:
           files: '**/backend/recommendation-service/build/test-results/test/TEST-*.xml'
-
       - name: 🍀 추천테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
         uses: mikepenz/action-junit-report@v3
         if: always()
@@ -72,20 +71,17 @@ jobs:
         if: always()
         with:
           files: '**/backend/review-service/build/test-results/test/TEST-*.xml'
-
       - name: 🍀 리뷰테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
         uses: mikepenz/action-junit-report@v3
         if: always()
         with:
           report_paths: '**/backend/review-service/build/test-results/test/TEST-*.xml'
           token: ${{ github.token }}
-
       - name: 🍀 상품테스트 결과를 PR에 코멘트로 등록합니다
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
           files: '**/backend/product-service/build/test-results/test/TEST-*.xml'
-
       - name: 🍀 상품테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
         uses: mikepenz/action-junit-report@v3
         if: always()
@@ -98,7 +94,6 @@ jobs:
         if: always()
         with:
           files: '**/backend/product-composite-service/build/test-results/test/TEST-*.xml'
-
       - name: 🍀 통합테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
         uses: mikepenz/action-junit-report@v3
         if: always()
