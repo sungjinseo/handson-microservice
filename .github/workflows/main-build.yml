@@ -17,6 +17,7 @@ on:
 #defaults:
 #  run:
 #    working-directory: backend
+permissions: write-all
 
 jobs:
   build:
