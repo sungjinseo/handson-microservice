@@ -31,7 +31,7 @@ class ProductDtoRepositoryTest {
 
     @BeforeEach
     public void setupDb() {
-        repository.deleteAll();
+        repository.deleteAll().block();
         ProductEntity entity = new ProductEntity(1, "n", 1);
         savedEntity = repository.save(entity).block();
         assertEqualsProduct(entity, savedEntity);
@@ -55,19 +55,19 @@ class ProductDtoRepositoryTest {
     @DisplayName("NonReactive-테스트1. 상품 등록하기")
     void TEST1_CREATE() {
         ProductEntity newEntity = new ProductEntity(2, "n", 2);
-        repository.save(newEntity);
+        repository.save(newEntity).block();
 
         ProductEntity foundEntity = repository.findById(newEntity.getId()).block();
         assertEqualsProduct(newEntity, foundEntity);
 
-        assertEquals(2, repository.count());
+        assertEquals(2, repository.count().block());
     }
 
     @Test
     @DisplayName("NonReactive-테스트2. 상품 저장하기")
     void TEST2_UPDATE() {
         savedEntity.setName("n2");
-        repository.save(savedEntity);
+        repository.save(savedEntity).block();
 
         ProductEntity foundEntity = repository.findById(savedEntity.getId()).block();
         assertEquals(1, (long)foundEntity.getVersion());
@@ -77,7 +77,7 @@ class ProductDtoRepositoryTest {
     @Test
     @DisplayName("NonReactive-테스트3. 상품 삭제하기")
     public void TEST3_DELETE() {
-        repository.delete(savedEntity);
+        repository.delete(savedEntity).block();
         assertFalse(repository.existsById(savedEntity.getId()).block());
     }
 
@@ -94,7 +94,7 @@ class ProductDtoRepositoryTest {
     public void TEST5_duplicateError() {
         ProductEntity entity = new ProductEntity(savedEntity.getProductId(), "n", 1);
         assertThrows(DuplicateKeyException.class, ()->{
-            repository.save(entity);
+            repository.save(entity).block();
         });
     }
 
@@ -108,13 +108,13 @@ class ProductDtoRepositoryTest {
 
         // Update the entity using the first entity object
         entity1.setName("n1");
-        repository.save(entity1);
+        repository.save(entity1).block();
 
         //  Update the entity using the second entity object.
         // This should fail since the second entity now holds a old version number, i.e. a Optimistic Lock Error
         try {
             entity2.setName("n2");
-            repository.save(entity2);
+            repository.save(entity2).block();
 
             fail("Expected an OptimisticLockingFailureException");
         } catch (OptimisticLockingFailureException e) {}
