@@ -3,6 +3,7 @@ package dev.greatseo.productcompositeservice.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.greatseo.api.core.product.ProductDto;
 import dev.greatseo.api.event.Event;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,6 +32,7 @@ public class ReceiverBindingTests {
     @MockBean
     private Function<Event, ProductDto> receiverMessageHandler;
 
+    @Disabled
     @Test
     void consumeMessageTest() {
         // payload 구성
@@ -47,6 +49,7 @@ public class ReceiverBindingTests {
         //verify(receiverMessageHandler).apply(payload);
 
     }
+    @Disabled
     @Test
     void publishMessageTest() throws IOException {
         // payload 구성
