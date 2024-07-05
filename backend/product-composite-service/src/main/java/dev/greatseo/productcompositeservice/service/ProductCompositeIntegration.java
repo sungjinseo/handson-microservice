@@ -108,7 +108,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
                             .withPayload(new Event(Event.Type.CREATE, body.productId(), mapper.writeValueAsString(body)))
                             .setHeader("MESSAGE_KEY", messageKey)
                             .build());
-            LOGGER.info("Publish the product by msgKey : {}", messageKey);
+            LOGGER.info("Publish the product by msgKey test value: {}", messageKey);
             return body;
             //return ResponseEntity.created(URI.create("/product/" + body.productId())).build();
 
