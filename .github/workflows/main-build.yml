@@ -24,7 +24,24 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: mongo
+        env:
+          MONGO_INITDB_ROOT_USERNAME: greatseo
+          MONGO_INITDB_ROOT_PASSWORD: greatseo
+          MONGO_INITDB_DATABASE: greatseo
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 3003:27017
+
     steps:
+      - name: Import DB seed data
+        #run: psql -d postgresql://postgres@localhost/postgres -f ddl.sql
+        # working-directory: ./test/data
+        env:
+          PGPASSWORD: postgres
+    
       - name: 리포지토리를 가져옵니다
         uses: actions/checkout@v3
         with:
