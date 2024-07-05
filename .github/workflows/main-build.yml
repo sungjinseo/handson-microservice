@@ -6,13 +6,13 @@ on:
       - main
       - release/*
       - develop
-    paths: 'backend/**'
+    #paths: 'backend/**'
   pull_request:
     branches:
       - main
       - release/*
       - develop
-    paths: 'backend/**'
+    #paths: 'backend/**'
 
 defaults:
   run:
