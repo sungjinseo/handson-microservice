@@ -39,14 +39,38 @@ spring.rabbitmq:
   username: greatseo
   password: greatseo
 
+#default value
+management:
+  endpoints:
+    web:
+      exposure.include: "*"
+      base-path: /actuator
+      path-mapping:
+        health: health
+    health.show-details: "ALWAYS"
+
 server:
   port: 7001
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    initialInstanceInfoReplicationIntervalSeconds: 5
+    registryFetchIntervalSeconds: 5
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 5
 
 ---
 spring:
   config:
     activate:
       on-profile: docker
+
+  rabbitmq.host: rabbitmq
+
+  #cloud.stream.kafka.binder.brokers: kafka
 
   data:
     mongodb:
@@ -60,3 +84,5 @@ spring:
 
 server:
   port: 8080
+
+eureka.client.serviceUrl.defaultZone: http://eureka:8761/eureka/
