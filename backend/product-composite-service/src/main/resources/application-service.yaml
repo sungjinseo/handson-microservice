@@ -59,6 +59,21 @@ spring:
     activate:
       on-profile: docker
 
+  cloud.stream:
+    defaultBinder: rabbit
+    default.contentType: application/json
+    bindings:
+      products-out-0:
+        destination: products
+        content-type: application/json
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: greatseo
+    password: greatseo
+  cloud.stream.kafka.binder.brokers: kafka
+
 server:
   port: 8080
 

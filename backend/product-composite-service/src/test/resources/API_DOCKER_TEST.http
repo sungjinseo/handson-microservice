@@ -1,3 +1,13 @@
 ### 200 default test
-GET http://localhost:8080/productDto-composite/1
+GET http://localhost:8080/product-composite/1
 Accept: application/json
+
+###
+POST http://localhost:8080/product/
+Content-Type: application/json
+
+{
+  "productId": 666,
+  "name": "test",
+  "weight": "11"
+}

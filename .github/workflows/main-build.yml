@@ -22,7 +22,6 @@ permissions: write-all
 jobs:
   test:
     runs-on: ubuntu-latest
-
     services:
       postgres:
         image: mongo
@@ -76,6 +75,7 @@ jobs:
         with:
           report_paths: '**/backend/review-service/build/test-results/test/TEST-*.xml'
           token: ${{ github.token }}
+
       - name: ⬇️ 상품테스트 결과를 PR에 코멘트로 등록합니다
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
@@ -101,6 +101,7 @@ jobs:
           token: ${{ github.token }}
 
   build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: 🚧 리포지토리를 가져옵니다
