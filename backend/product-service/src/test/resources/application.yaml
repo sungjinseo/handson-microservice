@@ -1,4 +1,7 @@
 spring:
+  cloud:
+    discovery:
+      enabled: false
   data:
     mongodb:
       auto-index-creation: true

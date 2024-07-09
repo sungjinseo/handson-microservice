@@ -55,7 +55,7 @@ jobs:
         run: ./gradlew build
 
       - name: 🍀 추천테스트 결과를 PR에 코멘트로 등록합니다
-        uses: EnricoMi/publish-unit-test-result-action@v1
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           files: '**/backend/recommendation-service/build/test-results/test/TEST-*.xml'
@@ -67,7 +67,7 @@ jobs:
           token: ${{ github.token }}
 
       - name: 🍀 리뷰테스트 결과를 PR에 코멘트로 등록합니다
-        uses: EnricoMi/publish-unit-test-result-action@v1
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           files: '**/backend/review-service/build/test-results/test/TEST-*.xml'
@@ -78,7 +78,7 @@ jobs:
           report_paths: '**/backend/review-service/build/test-results/test/TEST-*.xml'
           token: ${{ github.token }}
       - name: 🍀 상품테스트 결과를 PR에 코멘트로 등록합니다
-        uses: EnricoMi/publish-unit-test-result-action@v1
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           files: '**/backend/product-service/build/test-results/test/TEST-*.xml'
@@ -90,7 +90,7 @@ jobs:
           token: ${{ github.token }}
 
       - name: 🍀 통합테스트 결과를 PR에 코멘트로 등록합니다
-        uses: EnricoMi/publish-unit-test-result-action@v1
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           files: '**/backend/product-composite-service/build/test-results/test/TEST-*.xml'
