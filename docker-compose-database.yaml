@@ -1,0 +1,31 @@
+services:
+  maria:
+    container_name: r2dbc-maria
+    image: mariadb:10
+    ports:
+      - ${MARIA_BINDING_PORT}:3306
+    volumes:
+      - ${MARIA_DATA_PATH}:/var/lib/mysql
+      - ${MARIA_CONFIG_FILE}:/etc/mysql/conf.d
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+    #restart: always
+  mongo:
+    container_name: r2dbc-mongo
+    image: mongo
+    ports:
+      - ${MONGO_BINDING_PORT}:27017
+    volumes:
+      - ${MONGO_DATA_PATH}:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+      #restart: always
+networks:
+  default:
+    name: greatseo
+    external: true

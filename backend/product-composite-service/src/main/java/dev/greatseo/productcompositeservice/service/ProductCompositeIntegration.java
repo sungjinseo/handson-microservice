@@ -42,23 +42,17 @@ import static reactor.core.publisher.Flux.empty;
 public class ProductCompositeIntegration implements ProductService, RecommendationService, ReviewService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProductCompositeIntegration.class);
-    private static final String HTTP_BEGIN = "http://";
-    private static final String HTTPS_BEGIN = "https://";
 
     private WebClient webClient;
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objMapper;
-//    private final WebClient webClient;
-//    private final String productServiceUrl;
-//    private final String recommendationServiceUrl;
-//    private final String reviewServiceUrl;
     private final StreamBridge streamBridge;
 
     private static final String PRODUCTS_PUBLISH = "products-out-0";
 
-    private final String productServiceUrl = "http://product";
-    private final String recommendationServiceUrl = "http://recommendation";
-    private final String reviewServiceUrl = "http://review";
+    private final String productServiceUrl = "http://product/";
+    private final String recommendationServiceUrl = "http://recommendation/";
+    private final String reviewServiceUrl = "http://review/";
 
     @Autowired
     public ProductCompositeIntegration(WebClient.Builder webClientBuilder, ObjectMapper objMapper,

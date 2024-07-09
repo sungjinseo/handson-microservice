@@ -23,11 +23,20 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
 
   product-composite:
-    build: backend/product-composite-service
+    build:
+      context: ./backend/product-composite-service
+      dockerfile: Dockerfile
+      args:
+      - ARG_PINPOINT_VER=2.5.3
+      - ARG_COLLECTOR_IP=${ARG_COLLECTOR_IP}
+      - ARG_AGENT_ID=agent1
+      - ARG_APP_NAME=product-composite-service
+      - ARG_ACTIVE=docker
     ports:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+
   eureka:
     build: cloud/eureka-server
     mem_limit: 350m

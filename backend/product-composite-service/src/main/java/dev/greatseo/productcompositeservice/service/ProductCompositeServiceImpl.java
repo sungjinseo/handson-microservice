@@ -41,16 +41,6 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
     @Override
     public Mono<ProductAggregate> getCompositeProduct(int productId) {
 
-//        Mono<ResponseEntity<ProductDto>> productDto = integration.getProduct(productId);
-//
-//        if (productDto == null) throw new NotFoundException("No product found for productId: " + productId);
-//
-//        Flux<RecommendationDto> recommendationDtos = integration.getRecommendations(productId);
-//
-//        List<ReviewDto> reviewDtos = integration.getReviews(productId);
-//
-//        return createProductAggregate(productDto.getClass(), recommendationDtos, reviewDtos, serviceUtil.getServiceAddress());
-
         return Mono.zip(
                     values -> createProductAggregate(
                             (ProductDto) values[0]
