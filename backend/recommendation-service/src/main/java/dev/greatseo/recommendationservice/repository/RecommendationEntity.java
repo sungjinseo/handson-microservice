@@ -11,7 +11,6 @@ public class RecommendationEntity {
 
     @Id
     private String id;
-
     @Version
     private Integer version;
 

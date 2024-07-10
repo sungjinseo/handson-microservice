@@ -58,12 +58,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
 }
 
-tasks.named('bootJar') { //빌드할 때 bootjar 파일로 하겠다는 의미
+jar {
     enabled = false
-}
-
-tasks.named('jar') { //빌드할 때 jar 파일로 하겠다는 의미
-    enabled = true
 }
 
 tasks.named('test') {

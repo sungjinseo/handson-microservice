@@ -17,7 +17,7 @@ spring:
       password: greatseo
 
   rabbitmq:
-    host: 127.0.0.1
+    host: localhost
     port: 5672
     username: greatseo
     password: greatseo
@@ -25,8 +25,8 @@ spring:
   cloud.stream:
     defaultBinder: rabbit
     bindings:
-      products-in-0:
-        destination: products
+      product-in-0:
+        destination: product
         group: productGroup
         consumer:
           retry-template-name: defaultRetryTemplate #<retry-template-bean 명 등록>

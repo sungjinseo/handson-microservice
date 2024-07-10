@@ -10,9 +10,9 @@ public class ProductAggregate {
     private final List<ReviewSummary> reviews;
     private final ServiceAddresses serviceAddresses;
 
-    public record RecommendationSummary(int recommendationId, String author, int rate) {
+    public record RecommendationSummary(int recommendationId, String author, int rate, String content) {
     }
-    public record ReviewSummary(int reviewId, String author, String subject) {
+    public record ReviewSummary(int reviewId, String author, String subject, String content) {
     }
     public record ServiceAddresses(String compositeAddress, String productAddress, String reviewAddress, String recommendationAddress) {
     }

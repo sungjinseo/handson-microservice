@@ -55,6 +55,43 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
                 .log();
     }
 
+    @Override
+    public void createCompositeProduct(ProductAggregate body) {
+
+        try {
+
+            LOGGER.debug("createCompositeProduct: creates a new composite entity for productId: {}", body.getProductId());
+
+            ProductDto product = new ProductDto(body.getProductId(), body.getName(), body.getWeight(), null);
+            integration.createProduct(product);
+
+            if (body.getRecommendations() != null) {
+                body.getRecommendations().forEach(r -> {
+                    RecommendationDto recommendation = new RecommendationDto(body.getProductId(), r.recommendationId(), r.author(), r.rate(), r.content(), null);
+                    integration.createRecommendation(recommendation);
+                });
+            }
+
+            if (body.getReviews() != null) {
+                body.getReviews().forEach(r -> {
+                    ReviewDto review = new ReviewDto(body.getProductId(), r.reviewId(), r.author(), r.subject(), r.content(), null);
+                    integration.createReview(review);
+                });
+            }
+
+            LOGGER.debug("createCompositeProduct: composite entities created for productId: {}", body.getProductId());
+
+        } catch (RuntimeException re) {
+            LOGGER.warn("createCompositeProduct failed: {}", re.toString());
+            throw re;
+        }
+    }
+
+    @Override
+    public void deleteCompositeProduct(int productId) {
+
+    }
+
     private ProductAggregate createProductAggregate(ProductDto productDto, List<RecommendationDto> recommendationDtoList, List<ReviewDto> reviewDtoList, String serviceAddress) {
 
         // 1. Setup product info
@@ -65,13 +102,13 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
         // 2. Copy summary recommendation info, if available
         List<ProductAggregate.RecommendationSummary> recommendationSummaries = (recommendationDtoList == null) ? null :
                 recommendationDtoList.stream()
-                        .map(r -> new ProductAggregate.RecommendationSummary(r.getRecommendationId(), r.getAuthor(), r.getRate()))
+                        .map(r -> new ProductAggregate.RecommendationSummary(r.getRecommendationId(), r.getAuthor(), r.getRate(), r.getContent()))
                         .collect(Collectors.toList());
 
         // 3. Copy summary review info, if available
         List<ProductAggregate.ReviewSummary> reviewSummaries = (reviewDtoList == null)  ? null :
                 reviewDtoList.stream()
-                        .map(r -> new ProductAggregate.ReviewSummary(r.getReviewId(), r.getAuthor(), r.getSubject()))
+                        .map(r -> new ProductAggregate.ReviewSummary(r.getReviewId(), r.getAuthor(), r.getSubject(), r.getContent()))
                         .collect(Collectors.toList());
 
         // 4. Create info regarding the involved microservices addresses

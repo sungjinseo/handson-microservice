@@ -5,22 +5,17 @@ spring:
 server:
   port: 7000
 
-app:
-  product-service:
-    host: localhost
-    port: 7001
-  recommendation-service:
-    host: localhost
-    port: 7002
-  review-service:
-    host: localhost
-    port: 7003
-
 spring.cloud.stream:
   defaultBinder: rabbit
   bindings:
-    products-out-0:
-      destination: products
+    product-out-0:
+      destination: product
+      content-type: application/json
+    recommendation-out-0:
+      destination: recommendation
+      content-type: application/json
+    review-out-0:
+      destination: review
       content-type: application/json
 
 spring.rabbitmq:
@@ -63,8 +58,14 @@ spring:
     defaultBinder: rabbit
     default.contentType: application/json
     bindings:
-      products-out-0:
-        destination: products
+      product-out-0:
+        destination: product
+        content-type: application/json
+      recommendation-out-0:
+        destination: recommendation
+        content-type: application/json
+      review-out-0:
+        destination: review
         content-type: application/json
 
   rabbitmq:
@@ -73,6 +74,17 @@ spring:
     username: greatseo
     password: greatseo
   cloud.stream.kafka.binder.brokers: kafka
+
+#app:
+#  product-service:
+#    host: product
+#    port: 8080
+#  recommendation-service:
+#    host: recommendation
+#    port: 8080
+#  review-service:
+#    host: review
+#    port: 8080
 
 server:
   port: 8080

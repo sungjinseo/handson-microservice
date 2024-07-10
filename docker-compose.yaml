@@ -1,6 +1,6 @@
 services:
   product:
-    build: backend/product-service
+    build: ./backend/product-service
     deploy:
       resources:
         limits:
@@ -13,12 +13,12 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
 
   recommendation:
-    build: backend/recommendation-service
+    build: ./backend/recommendation-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
 
   review:
-    build: backend/review-service
+    build: ./backend/review-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
 
@@ -36,12 +36,6 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-
-  eureka:
-    build: cloud/eureka-server
-    mem_limit: 350m
-    ports:
-      - "8761:8761"
 
 networks:
   default:

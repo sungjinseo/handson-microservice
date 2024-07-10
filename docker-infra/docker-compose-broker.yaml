@@ -2,7 +2,7 @@ services:
   rabbitmq-1:
     image: rabbitmq:3.13.3-management
     container_name: rabbitmq-1
-    hostname: rabbitmq-1
+    hostname: rabbitmq
     environment:
       - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
@@ -13,7 +13,7 @@ services:
   rabbitmq-2:
     image: rabbitmq:3.13.3-management
     container_name: rabbitmq-2
-    hostname: rabbitmq-2
+    hostname: rabbitmq
     depends_on:
       - rabbitmq-1
     environment:

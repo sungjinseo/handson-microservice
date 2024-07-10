@@ -29,7 +29,7 @@ spring:
   cloud.stream:
     defaultBinder: rabbit
     bindings:
-      products-in-0:
+      reviews-in-0:
         destination: reviews
         group: reviewGroup
         consumer:

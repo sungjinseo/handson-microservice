@@ -15,3 +15,22 @@ spring:
       database: greatseo
       username: greatseo
       password: greatseo
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: greatseo
+    password: greatseo
+
+  cloud.stream:
+    defaultBinder: rabbit
+    bindings:
+      recommendation-in-0:
+        destination: recommendation
+        group: recommendationGroup
+        consumer:
+          retry-template-name: defaultRetryTemplate #<retry-template-bean 명 등록>
+        #error-handler-definition: productErrorHandler
+    kafka.binder:
+      brokers: 127.0.0.1
+      defaultBrokerPort: 9092

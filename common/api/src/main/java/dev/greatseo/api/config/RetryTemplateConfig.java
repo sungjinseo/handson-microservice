@@ -1,4 +1,4 @@
-package dev.greatseo.reviewservice.config;
+package dev.greatseo.api.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +19,8 @@ public class RetryTemplateConfig {
     private final RetryListener listener = new RetryListener() {
         @Override
         public <T, E extends Throwable> void onError(RetryContext retryContext, RetryCallback<T, E> retryCallback, Throwable throwable) {
+
+            LOGGER.info("=========== RETRY ERROR {} 번째 발생 ================", retryContext.getClass());
             LOGGER.info("=========== RETRY ERROR {} 번째 발생 ================", retryContext.getRetryCount());
             LOGGER.info("Retry Exception Trace::: ", throwable.getCause());
         }

@@ -10,8 +10,8 @@ spring:
     defaultBinder: rabbit
     default.contentType: application/json
     bindings.input:
-      destination: products
-      group: productsGroup
+      destination: product
+      group: productGroup
 
   rabbitmq:
     host: rabbitmq

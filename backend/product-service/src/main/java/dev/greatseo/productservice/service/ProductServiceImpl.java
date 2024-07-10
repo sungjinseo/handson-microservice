@@ -80,6 +80,7 @@ public class ProductServiceImpl implements ProductService {
                 .log()
                 .map(e -> mapper.entityToApi(e))
                 .map(e -> {
+                    LOGGER.info("Find the item : {}",e.toString());
                     return new ProductDto(e.productId(), e.name(), e.weight(), serviceUtil.getServiceAddress());
                 });
 

@@ -48,8 +48,7 @@ class RecommendationDtoRepositoryTest {
 
     private boolean areRecommendationEqual(RecommendationEntity expectedEntity, RecommendationEntity actualEntity) {
         return
-                (expectedEntity.getId().equals(actualEntity.getId())) &&
-                        (expectedEntity.getVersion().equals(actualEntity.getVersion())) &&
+                (expectedEntity.getId().equals(actualEntity.getId())) &&                        (expectedEntity.getVersion().equals(actualEntity.getVersion())) &&
                         (expectedEntity.getProductId() == actualEntity.getProductId()) &&
                         (expectedEntity.getAuthor().equals(actualEntity.getAuthor())) &&
                         (expectedEntity.getContent().equals(actualEntity.getContent())) &&
@@ -95,12 +94,6 @@ class RecommendationDtoRepositoryTest {
                 )
                 .expectNextMatches(foundEntity -> areRecommendationEqual(savedEntity, foundEntity))
                 .verifyComplete();
-//        Flux<RecommendationEntity> entityList = repository.findByProductId(savedEntity.getProductId());
-//
-//        //assertEquals(entityList.collectList().block(), hasSize(1));
-//        assertEquals(entityList.count().block(), 1);
-//        assertEqualsRecommendation(savedEntity, entityList.blockFirst());
-
     }
 
     @Test

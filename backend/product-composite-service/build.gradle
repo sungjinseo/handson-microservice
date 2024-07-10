@@ -55,9 +55,15 @@ openapi3 {
             { url = "http://localhost:8080" },
             { url = "http://localhost:7000" },
     ]
-    title = "Integration API 문서"
-    description = "RestDocsWithSwagger Docs"
-    version = "0.0.1"
+    title = "Product Composite API 문서"
+    description = """
+                 fedfe
+                 fefefe
+                 efefe
+                 fefe
+                 fef
+                  """
+    version = "0.1"
     format = "yaml"
 }
 
@@ -73,7 +79,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
 
+
     // spring cloud dependency
+    //implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit:4.0.4'
     implementation 'org.springframework.cloud:spring-cloud-starter-stream-kafka:4.0.4'
@@ -115,8 +123,6 @@ bootJar {
         into 'static/docs'
     }
 }
-
-
 
 jar {
     enabled = false

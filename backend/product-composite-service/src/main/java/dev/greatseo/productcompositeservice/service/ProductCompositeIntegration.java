@@ -15,8 +15,13 @@ import dev.greatseo.util.http.HttpErrorInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.health.CompositeReactiveHealthContributor;
 import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.ReactiveHealthContributor;
+import org.springframework.boot.actuate.health.ReactiveHealthIndicator;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.support.MessageBuilder;
@@ -30,6 +35,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -49,18 +55,33 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     private final StreamBridge streamBridge;
 
     private static final String PRODUCTS_PUBLISH = "products-out-0";
+    private static final String REVIEWS_PUBLISH = "reviews-out-0";
 
     private final String productServiceUrl = "http://product/";
     private final String recommendationServiceUrl = "http://recommendation/";
-    private final String reviewServiceUrl = "http://review/";
+    private final String reviewServiceUrl = "http://review/";;
 
     @Autowired
-    public ProductCompositeIntegration(WebClient.Builder webClientBuilder, ObjectMapper objMapper,
-                                       StreamBridge streamBridge
+    public ProductCompositeIntegration(WebClient.Builder webClientBuilder, ObjectMapper objMapper, StreamBridge streamBridge
     ) {
         this.webClientBuilder = webClientBuilder;
         this.objMapper = objMapper;
         this.streamBridge = streamBridge;
+    }
+
+    @Bean(name = "Core System Microservices")
+    ReactiveHealthContributor CoreServicesHealth() {
+
+        ReactiveHealthIndicator productHealthIndicator = this::getProductHealth,
+                recommendationHealthIndicator = this::getRecommendationHealth,
+                reviewHealthIndicator = this::getReviewHealth;
+
+        Map<String, ReactiveHealthContributor> allIndicators = Map.of(
+                "Product Service", productHealthIndicator,
+                "Recommendation Service", recommendationHealthIndicator,
+                "Review Service", reviewHealthIndicator);
+
+        return CompositeReactiveHealthContributor.fromMap(allIndicators);
     }
 
     /**
@@ -102,7 +123,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     public Mono<ProductDto> getProduct(int productId) {
 
         try {
-            String url = productServiceUrl + productId;
+            String url = productServiceUrl + "product/"+ productId;
             LOGGER.debug("Will call the getProduct API on URL: {}", url);
 
             return this.getWebClient()
@@ -140,7 +161,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     @Override
     public Flux<RecommendationDto> getRecommendations(int productId) {
 
-        String url = recommendationServiceUrl + productId;
+        String url = recommendationServiceUrl  + "recommendation/"+ productId;
 
         return this.getWebClient()
                 .get()
@@ -148,6 +169,16 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
                 .retrieve()
                 .bodyToFlux(RecommendationDto.class).log()
                 .onErrorResume(error->empty());
+    }
+
+    @Override
+    public RecommendationDto createRecommendation(RecommendationDto body) {
+        return null;
+    }
+
+    @Override
+    public void deleteRecommendations(int productId) {
+
     }
 
     /**
@@ -248,7 +279,11 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     private Mono<Health> getHealth(String url) {
         url += "/actuator/health";
         LOGGER.debug("Will call the Health API on URL: {}", url);
-        return getWebClient().get().uri(url).retrieve().bodyToMono(String.class)
+        return getWebClient()
+                .get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(String.class)
                 .map(s -> new Health.Builder().up().build())
                 .onErrorResume(ex -> Mono.just(new Health.Builder().down(ex).build()))
                 .log();
