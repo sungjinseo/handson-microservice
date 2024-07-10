@@ -7,7 +7,7 @@ import org.mapstruct.factory.Mappers;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ProductDtoMapperTest {
+public class ProductMapperTest {
     private ProductMapper mapper = Mappers.getMapper(ProductMapper.class);
 
     @Test

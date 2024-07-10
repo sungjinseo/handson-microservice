@@ -6,23 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import static java.util.stream.IntStream.rangeClosed;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.data.domain.Sort.Direction.ASC;
 
 @ExtendWith(SpringExtension.class)
 @DataMongoTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class ProductDtoRepositoryTest {
+class ProductRepositoryTest {
 
     @Autowired
     private ProductRepository repository;

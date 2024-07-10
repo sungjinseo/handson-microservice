@@ -55,7 +55,7 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
                 .log();
     }
 
-    private ProductAggregate createProductAggregate(ProductDto productDto, List<RecommendationDto> recommendationDtos, List<ReviewDto> reviewDtos, String serviceAddress) {
+    private ProductAggregate createProductAggregate(ProductDto productDto, List<RecommendationDto> recommendationDtoList, List<ReviewDto> reviewDtoList, String serviceAddress) {
 
         // 1. Setup product info
         int productId = productDto.productId();
@@ -63,21 +63,21 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
         int weight = productDto.weight();
 
         // 2. Copy summary recommendation info, if available
-        List<ProductAggregate.RecommendationSummary> recommendationSummaries = (recommendationDtos == null) ? null :
-                recommendationDtos.stream()
+        List<ProductAggregate.RecommendationSummary> recommendationSummaries = (recommendationDtoList == null) ? null :
+                recommendationDtoList.stream()
                         .map(r -> new ProductAggregate.RecommendationSummary(r.getRecommendationId(), r.getAuthor(), r.getRate()))
                         .collect(Collectors.toList());
 
         // 3. Copy summary review info, if available
-        List<ProductAggregate.ReviewSummary> reviewSummaries = (reviewDtos == null)  ? null :
-                reviewDtos.stream()
+        List<ProductAggregate.ReviewSummary> reviewSummaries = (reviewDtoList == null)  ? null :
+                reviewDtoList.stream()
                         .map(r -> new ProductAggregate.ReviewSummary(r.getReviewId(), r.getAuthor(), r.getSubject()))
                         .collect(Collectors.toList());
 
         // 4. Create info regarding the involved microservices addresses
         String productAddress = productDto.serviceAddress();
-        String reviewAddress = (reviewDtos != null && reviewDtos.size() > 0) ? reviewDtos.get(0).getServiceAddress() : "";
-        String recommendationAddress = (recommendationDtos != null && recommendationDtos.size() > 0) ? recommendationDtos.get(0).getServiceAddress() : "";
+        String reviewAddress = (reviewDtoList != null && !reviewDtoList.isEmpty()) ? reviewDtoList.get(0).getServiceAddress() : "";
+        String recommendationAddress = (recommendationDtoList != null && !recommendationDtoList.isEmpty()) ? recommendationDtoList.get(0).getServiceAddress() : "";
         ProductAggregate.ServiceAddresses serviceAddresses = new ProductAggregate.ServiceAddresses(serviceAddress, productAddress, reviewAddress, recommendationAddress);
 
         return new ProductAggregate(productId, name, weight, recommendationSummaries, reviewSummaries, serviceAddresses);

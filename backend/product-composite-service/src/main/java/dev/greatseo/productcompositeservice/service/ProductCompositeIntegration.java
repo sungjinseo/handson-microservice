@@ -171,6 +171,16 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
                 .onErrorResume(error -> empty());
     }
 
+    @Override
+    public ReviewDto createReview(ReviewDto body) {
+        return null;
+    }
+
+    @Override
+    public void deleteReviews(int productId) {
+
+    }
+
     private RuntimeException handleHttpClientException(HttpClientErrorException ex) {
 
         final HttpStatusCode statusCode = ex.getStatusCode();

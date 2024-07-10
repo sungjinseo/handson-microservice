@@ -1,0 +1,21 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://r2dbc-maria:3306/greatseo?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: greatseo
+    password: greatseo
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true #To beautify or pretty print the SQL
+        show_sql: true #show sql

@@ -1,0 +1,17 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  data:
+    mongodb:
+      auto-index-creation: true
+      authentication-database: admin
+      host: r2dbc-mongo
+      port: 27017
+      database: greatseo
+      username: greatseo
+      password: greatseo

@@ -13,7 +13,7 @@ public class ReviewEntity {
     private int id;
 
     @Version
-    private int version;
+    private Long version;
 
     private int productId;
     private int reviewId;
@@ -45,11 +45,11 @@ public class ReviewEntity {
         this.id = id;
     }
 
-    public int getVersion() {
+    public Long getVersion() {
         return version;
     }
 
-    public void setVersion(int version) {
+    public void setVersion(Long version) {
         this.version = version;
     }
 
