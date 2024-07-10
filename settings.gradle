@@ -6,3 +6,5 @@ include ':backend:product-composite-service'
 include ':backend:product-service'
 include ':backend:recommendation-service'
 include ':backend:review-service'
+
+include ':cloud:eureka-server'

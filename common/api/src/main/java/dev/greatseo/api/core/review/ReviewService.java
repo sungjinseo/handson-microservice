@@ -1,7 +1,6 @@
 package dev.greatseo.api.core.review;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
@@ -18,4 +17,8 @@ public interface ReviewService {
             value    = "/review",
             produces = "application/json")
     Flux<ReviewDto> getReviews(@RequestParam(value = "productId", required = true) int productId);
+
+    ReviewDto createReview(@RequestBody ReviewDto body);
+
+    void deleteReviews(@RequestParam(value = "productId", required = true)  int productId);
 }

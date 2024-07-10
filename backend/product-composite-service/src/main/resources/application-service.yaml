@@ -29,22 +29,52 @@ spring.rabbitmq:
   username: greatseo
   password: greatseo
 
+management:
+  health:
+    externalApiHealthStatus:
+      enabled: true
+    ping:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    initialInstanceInfoReplicationIntervalSeconds: 5
+    registryFetchIntervalSeconds: 5
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 5
+
 ---
 spring:
   config:
     activate:
       on-profile: docker
 
+  cloud.stream:
+    defaultBinder: rabbit
+    default.contentType: application/json
+    bindings:
+      products-out-0:
+        destination: products
+        content-type: application/json
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: greatseo
+    password: greatseo
+  cloud.stream.kafka.binder.brokers: kafka
+
 server:
   port: 8080
 
-app:
-  product-service:
-    host: product
-    port: 8080
-  recommendation-service:
-    host: recommendation
-    port: 8080
-  review-service:
-    host: review
-    port: 8080
+eureka.client.serviceUrl.defaultZone: http://eureka:8761/eureka/

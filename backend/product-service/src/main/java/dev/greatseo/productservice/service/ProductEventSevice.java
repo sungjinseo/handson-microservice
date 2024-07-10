@@ -5,14 +5,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.greatseo.api.core.product.ProductDto;
 import dev.greatseo.api.core.product.ProductService;
 import dev.greatseo.api.event.Event;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 @Configuration
 public class ProductEventSevice {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductEventSevice.class);
 
     private final ProductService productService;
     private final ObjectMapper objectMapper;
@@ -23,13 +27,13 @@ public class ProductEventSevice {
         this.objectMapper = new ObjectMapper();
     }
 
-    // blocking coding시 cosumer ack 처리로 인한 키중복 발생
     @Bean
-    public Function<Event<Integer, String>, ProductDto> products() {
+    public Consumer<Event<Integer, String>> products() {
         return eventItem -> {
             try {
+                LOGGER.info("event-type: {}",eventItem.getEventType());
                 ProductDto item = objectMapper.readValue((String)eventItem.getValue(), ProductDto.class);
-                return productService.createProduct(item);
+                productService.createProduct(item);
 
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);

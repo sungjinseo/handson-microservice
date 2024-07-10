@@ -32,7 +32,7 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"eureka.client.enabled=false"})
 class ProductDtoCompositeServiceApplicationTests {
 
     private static final int PRODUCT_ID_OK = 1;
@@ -60,18 +60,6 @@ class ProductDtoCompositeServiceApplicationTests {
         given(pcIntegration.getProduct(PRODUCT_ID_INVALID))
                 .willThrow(new InvalidInputException("INVALID: " + PRODUCT_ID_INVALID));
 
-        //blocking
-//        when(pcIntegration.getProduct(PRODUCT_ID_OK))
-//                .thenReturn(ResponseEntity.ok().body(new ProductDto(PRODUCT_ID_OK, "name", 1, "mock-address")));
-//        when(pcIntegration.getRecommendations(PRODUCT_ID_OK))
-//                .thenReturn(Collections.singletonList(new RecommendationDto(PRODUCT_ID_OK, 1, "author", 1, "content", "mock-address")));
-//        when(pcIntegration.getReviews(PRODUCT_ID_OK))
-//                .thenReturn(Collections.singletonList(new ReviewDto(PRODUCT_ID_OK, 1, "author", "subject", "content", "mock-address")));
-
-//        when(pcIntegration.getProduct(PRODUCT_ID_NOT_FOUND))
-//                .thenThrow(new NotFoundException("NOT FOUND: " + PRODUCT_ID_NOT_FOUND));
-//        when(pcIntegration.getProduct(PRODUCT_ID_INVALID))
-//                .thenThrow(new InvalidInputException("INVALID: " + PRODUCT_ID_INVALID));
     }
 
     private WebTestClient.BodyContentSpec getAndVerifyProduct(int productId, HttpStatus expectedStatus) {

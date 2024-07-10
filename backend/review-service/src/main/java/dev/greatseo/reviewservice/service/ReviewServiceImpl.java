@@ -6,15 +6,20 @@ import dev.greatseo.reviewservice.repository.ReviewEntity;
 import dev.greatseo.reviewservice.repository.ReviewRepository;
 import dev.greatseo.util.exceptions.InvalidInputException;
 import dev.greatseo.util.http.ServiceUtil;
+import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Scheduler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
+
+import static java.util.logging.Level.FINE;
 
 @RestController
 public class ReviewServiceImpl implements ReviewService {
@@ -38,28 +43,53 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    public ReviewDto createReview(ReviewDto body) {
+
+        if (body.getProductId() < 1) throw new InvalidInputException("Invalid productId: " + body.getProductId());
+
+        try {
+            ReviewEntity entity = mapper.apiToEntity(body);
+            ReviewEntity newEntity = repository.save(entity);
+
+            LOGGER.debug("createReview: created a review entity: {}/{}", body.getProductId(), body.getReviewId());
+            return mapper.entityToApi(newEntity);
+
+        } catch (DataIntegrityViolationException dive) {
+            throw new InvalidInputException("Duplicate key, Product Id: " + body.getProductId() + ", Review Id:" + body.getReviewId());
+        }
+    }
+
+    @Override
     public Flux<ReviewDto> getReviews(int productId) {
 
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
-        return asyncFlux(getByProductId(productId));
+        LOGGER.info("Will get reviews for product with id={}", productId);
+
+        return asyncFlux(() -> Flux.fromIterable(getByProductId(productId))).log(null, FINE);
     }
 
-    protected List<ReviewDto> getByProductId(int productId){
+    protected List<ReviewDto> getByProductId(int productId) {
+
         List<ReviewEntity> entityList = repository.findByProductId(productId);
-        List<ReviewDto> reviewDtoList = mapper.entityListToApiList(entityList);
+        List<ReviewDto> list = mapper.entityListToApiList(entityList);
+        list.forEach(e -> e.setServiceAddress(serviceUtil.getServiceAddress()));
 
-        // 객체의 변화를 주는 것이 올바른가...
-        reviewDtoList.forEach(item ->{
-            item.setServiceAddress(serviceUtil.getServiceAddress());
-        });
+        LOGGER.debug("getReviews: response size: {}", list.size());
 
-        LOGGER.info("getReview: response size: {}", reviewDtoList.size());
-
-        return reviewDtoList;
+        return list;
     }
 
-    private <T> Flux<T> asyncFlux(Iterable<T> iterable) {
-        return Flux.fromIterable(iterable).publishOn(scheduler);
+    @Override
+    public void deleteReviews(int productId) {
+
+        if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
+
+        LOGGER.debug("deleteReviews: tries to delete reviews for the product with productId: {}", productId);
+        repository.deleteAll(repository.findByProductId(productId));
+    }
+
+    private <T> Flux<T> asyncFlux(Supplier<Publisher<T>> publisherSupplier) {
+        return Flux.defer(publisherSupplier).subscribeOn(scheduler);
     }
 }

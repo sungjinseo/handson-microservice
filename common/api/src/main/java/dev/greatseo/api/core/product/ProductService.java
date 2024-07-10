@@ -41,5 +41,5 @@ public interface ProductService {
      * @param productId
      */
     @DeleteMapping(value = "/{productId}")
-    ResponseEntity<ProductDto> deleteProduct(@PathVariable int productId);
+    ResponseEntity deleteProduct(@PathVariable int productId);
 }

@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  cloud.stream:
+    defaultBinder: rabbit
+    default.contentType: application/json
+    bindings.input:
+      destination: products
+      group: productsGroup
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: greatseo
+    password: greatseo
+
+  cloud.stream.kafka.binder.brokers: kafka
+
+  #cloud.stream.kafka.binder.brokers: kafka
+
+  data:
+    mongodb:
+      auto-index-creation: true
+      authentication-database: admin
+      host: r2dbc-mongo
+      port: 27017
+      database: greatseo
+      username: greatseo
+      password: greatseo
+
+eureka.client.serviceUrl.defaultZone: http://eureka:8761/eureka/

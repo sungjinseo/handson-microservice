@@ -8,6 +8,7 @@ buildscript {
     ext {
         restdocsApiSpecVersion = '0.17.1'
         swaggerVersion = '2.18.2'
+        springCloudVersion = '2023.0.2'
     }
 }
 
@@ -31,6 +32,14 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 
 // 5. 생성된 API 스펙이 어느 위치에 있는지 지정
@@ -65,6 +74,7 @@ dependencies {
     testImplementation 'io.projectreactor:reactor-test'
 
     // spring cloud dependency
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit:4.0.4'
     implementation 'org.springframework.cloud:spring-cloud-starter-stream-kafka:4.0.4'
     testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder:4.0.4'

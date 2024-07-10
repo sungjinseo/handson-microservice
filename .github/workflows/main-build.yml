@@ -20,10 +20,8 @@ on:
 permissions: write-all
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
-
     services:
       postgres:
         image: mongo
@@ -36,67 +34,90 @@ jobs:
           - 3003:27017
 
     steps:
-      - name: 🍀 리포지토리를 가져옵니다
-        uses: actions/checkout@v3
+      - name: 🚧 리포지토리를 가져옵니다
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.SUBMODULE_TOKEN }}
           submodules: recursive
 
-      - name: 🍀 JDK 11을 설치합니다
-        uses: actions/setup-java@v3
+      - name: 👷 JDK 17을 설치합니다
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 🍀 Gradle 명령 실행을 위한 권한을 부여합니다
+      - name: 🔧 Gradle 명령 실행을 위한 권한을 부여합니다
         run: chmod +x ./gradlew
 
-      - name: 🍀 Gradle build를 수행합니다
-        run: ./gradlew build
+      - name: ✅ Gradle test를 수행합니다
+        run: ./gradlew test
 
-      - name: 🍀 추천테스트 결과를 PR에 코멘트로 등록합니다
-        uses: EnricoMi/publish-unit-test-result-action@v1
+      - name: ⬇️ 추천테스트 결과를 PR에 코멘트로 등록합니다
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           files: '**/backend/recommendation-service/build/test-results/test/TEST-*.xml'
-      - name: 🍀 추천테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
-        uses: mikepenz/action-junit-report@v3
+      - name: 🚨 추천테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+        uses: mikepenz/action-junit-report@v4
         if: always()
         with:
           report_paths: '**/backend/recommendation-service/build/test-results/test/TEST-*.xml'
           token: ${{ github.token }}
 
-      - name: 🍀 리뷰테스트 결과를 PR에 코멘트로 등록합니다
-        uses: EnricoMi/publish-unit-test-result-action@v1
+      - name: ⬇️ 리뷰테스트 결과를 PR에 코멘트로 등록합니다
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           files: '**/backend/review-service/build/test-results/test/TEST-*.xml'
-      - name: 🍀 리뷰테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
-        uses: mikepenz/action-junit-report@v3
+      - name: 🚨 리뷰테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+        uses: mikepenz/action-junit-report@v4
         if: always()
         with:
           report_paths: '**/backend/review-service/build/test-results/test/TEST-*.xml'
           token: ${{ github.token }}
-      - name: 🍀 상품테스트 결과를 PR에 코멘트로 등록합니다
-        uses: EnricoMi/publish-unit-test-result-action@v1
+
+      - name: ⬇️ 상품테스트 결과를 PR에 코멘트로 등록합니다
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           files: '**/backend/product-service/build/test-results/test/TEST-*.xml'
-      - name: 🍀 상품테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
-        uses: mikepenz/action-junit-report@v3
+      - name: 🚨 상품테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+        uses: mikepenz/action-junit-report@v4
         if: always()
         with:
           report_paths: '**/backend/product-service/build/test-results/test/TEST-*.xml'
           token: ${{ github.token }}
 
-      - name: 🍀 통합테스트 결과를 PR에 코멘트로 등록합니다
-        uses: EnricoMi/publish-unit-test-result-action@v1
+      - name: ⬇️ 통합테스트 결과를 PR에 코멘트로 등록합니다
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           files: '**/backend/product-composite-service/build/test-results/test/TEST-*.xml'
-      - name: 🍀 통합테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
-        uses: mikepenz/action-junit-report@v3
+      - name: 🚨 통합테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+        uses: mikepenz/action-junit-report@v4
         if: always()
         with:
           report_paths: '**/backend/product-composite-service/build/test-results/test/TEST-*.xml'
           token: ${{ github.token }}
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚧 리포지토리를 가져옵니다
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SUBMODULE_TOKEN }}
+          submodules: recursive
+
+      - name: 👷 JDK 17을 설치합니다
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 🔧 Gradle 명령 실행을 위한 권한을 부여합니다
+        run: chmod +x ./gradlew
+
+      - name: 📦 Gradle build를 수행합니다
+        run: ./gradlew build -x test

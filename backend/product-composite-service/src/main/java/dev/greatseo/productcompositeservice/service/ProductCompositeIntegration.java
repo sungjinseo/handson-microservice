@@ -15,30 +15,23 @@ import dev.greatseo.util.http.HttpErrorInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.actuate.health.Health;
 import org.springframework.cloud.stream.function.StreamBridge;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.SerializationUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static reactor.core.publisher.Flux.empty;
@@ -49,42 +42,25 @@ import static reactor.core.publisher.Flux.empty;
 public class ProductCompositeIntegration implements ProductService, RecommendationService, ReviewService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProductCompositeIntegration.class);
-    private static final String HTTP_BEGIN = "http://";
-    private static final String HTTPS_BEGIN = "https://";
 
-
-    private final RestTemplate restTemplate;
+    private WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objMapper;
-    private final WebClient webClient;
-    private final String productServiceUrl;
-    private final String recommendationServiceUrl;
-    private final String reviewServiceUrl;
     private final StreamBridge streamBridge;
 
     private static final String PRODUCTS_PUBLISH = "products-out-0";
 
+    private final String productServiceUrl = "http://product/";
+    private final String recommendationServiceUrl = "http://recommendation/";
+    private final String reviewServiceUrl = "http://review/";
+
     @Autowired
-    public ProductCompositeIntegration(WebClient.Builder webClient, ObjectMapper objMapper,
-                                       @Value("${app.product-service.host}") String productServiceHost,
-                                       @Value("${app.product-service.port}") int    productServicePort,
-
-                                       @Value("${app.recommendation-service.host}") String recommendationServiceHost,
-                                       @Value("${app.recommendation-service.port}") int    recommendationServicePort,
-
-                                       @Value("${app.review-service.host}") String reviewServiceHost,
-                                       @Value("${app.review-service.port}") int    reviewServicePort,
-
-                                       RestTemplateBuilder restBuilder,
+    public ProductCompositeIntegration(WebClient.Builder webClientBuilder, ObjectMapper objMapper,
                                        StreamBridge streamBridge
     ) {
-        this.restTemplate = restBuilder.build();
-        this.webClient = webClient.build();
+        this.webClientBuilder = webClientBuilder;
         this.objMapper = objMapper;
         this.streamBridge = streamBridge;
-
-        productServiceUrl        = HTTP_BEGIN + productServiceHost + ":" + productServicePort + "/product/";
-        recommendationServiceUrl = HTTP_BEGIN + recommendationServiceHost + ":" + recommendationServicePort + "/recommendation?productId=";
-        reviewServiceUrl         = HTTP_BEGIN + reviewServiceHost + ":" + reviewServicePort + "/review?productId=";
     }
 
     /**
@@ -110,7 +86,6 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
                             .build());
             LOGGER.info("Publish the product by msgKey test value: {}", messageKey);
             return body;
-            //return ResponseEntity.created(URI.create("/product/" + body.productId())).build();
 
         } catch (HttpClientErrorException ex) {
             throw handleHttpClientException(ex);
@@ -130,7 +105,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
             String url = productServiceUrl + productId;
             LOGGER.debug("Will call the getProduct API on URL: {}", url);
 
-            return webClient
+            return this.getWebClient()
                     .get()
                     .uri(url)
                     .retrieve()
@@ -167,34 +142,12 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
 
         String url = recommendationServiceUrl + productId;
 
-        return webClient
+        return this.getWebClient()
                 .get()
                 .uri(url)
                 .retrieve()
                 .bodyToFlux(RecommendationDto.class).log()
                 .onErrorResume(error->empty());
-
-        /**
-         * blocking code
-         */
-//        try {
-//            String url = recommendationServiceUrl + productId;
-//
-//            LOGGER.debug("Will call getRecommendations API on URL: {}", url);
-//            List<RecommendationDto> recommendationDtos = restTemplate.exchange(
-//                    url,
-//                    GET,
-//                    null,
-//                    new ParameterizedTypeReference<List<RecommendationDto>>() {}
-//            ).getBody();
-//
-//            LOGGER.debug("Found {} recommendations for a product with id: {}", recommendationDtos.size(), productId);
-//            return Flux.fromIterable(recommendationDtos);
-//
-//        } catch (Exception ex) {
-//            LOGGER.warn("Got an exception while requesting recommendations, return zero recommendations: {}", ex.getMessage());
-//            return Flux.just();
-//        }
     }
 
     /**
@@ -205,21 +158,27 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
      */
     @Override
     public Flux<ReviewDto> getReviews(int productId) {
-        try {
-            String url = reviewServiceUrl + productId;
+        String url = reviewServiceUrl + "/review?productId=" + productId;
 
-            LOGGER.debug("Will call getReviews API on URL: {}", url);
-            List<ReviewDto> reviewDtos = restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<ReviewDto>>() {}).getBody();
+        LOGGER.debug("Will call the getReviews API on URL: {}", url);
 
-            LOGGER.debug("Found {} reviews for a product with id: {}", reviewDtos.size(), productId);
-            //return reviewDtos;
-            return Flux.fromIterable(reviewDtos);
+        // Return an empty result if something goes wrong to make it possible for the composite service to return partial responses
+        return this.getWebClient()
+                .get()
+                .uri(url)
+                .retrieve()
+                .bodyToFlux(ReviewDto.class).log()
+                .onErrorResume(error -> empty());
+    }
 
-        } catch (Exception ex) {
-            LOGGER.warn("Got an exception while requesting reviews, return zero reviews: {}", ex.getMessage());
-            return Flux.just();
-            //return new ArrayList<>();
-        }
+    @Override
+    public ReviewDto createReview(ReviewDto body) {
+        return null;
+    }
+
+    @Override
+    public void deleteReviews(int productId) {
+
     }
 
     private RuntimeException handleHttpClientException(HttpClientErrorException ex) {
@@ -272,5 +231,33 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
         } catch (IOException ioex) {
             return ex.getMessage();
         }
+    }
+
+    public Mono<Health> getProductHealth() {
+        return getHealth(productServiceUrl);
+    }
+
+    public Mono<Health> getRecommendationHealth() {
+        return getHealth(recommendationServiceUrl);
+    }
+
+    public Mono<Health> getReviewHealth() {
+        return getHealth(reviewServiceUrl);
+    }
+
+    private Mono<Health> getHealth(String url) {
+        url += "/actuator/health";
+        LOGGER.debug("Will call the Health API on URL: {}", url);
+        return getWebClient().get().uri(url).retrieve().bodyToMono(String.class)
+                .map(s -> new Health.Builder().up().build())
+                .onErrorResume(ex -> Mono.just(new Health.Builder().down(ex).build()))
+                .log();
+    }
+
+    private WebClient getWebClient() {
+        if (webClient == null) {
+            webClient = webClientBuilder.build();
+        }
+        return webClient;
     }
 }

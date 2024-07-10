@@ -1,0 +1,11 @@
+services:
+  eureka:
+    build: cloud/eureka-server
+    mem_limit: 350m
+    ports:
+      - "8761:8761"
+
+networks:
+  default:
+    name: greatseo
+    external: true

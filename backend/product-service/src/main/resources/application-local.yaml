@@ -1,0 +1,55 @@
+server:
+  port: 7001
+
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  data:
+    mongodb:
+      auto-index-creation: true
+      authentication-database: admin
+      host: localhost
+      port: 3003
+      database: greatseo
+      username: greatseo
+      password: greatseo
+
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: greatseo
+    password: greatseo
+
+  cloud.stream:
+    defaultBinder: rabbit
+    bindings:
+      products-in-0:
+        destination: products
+        group: productGroup
+        consumer:
+          retry-template-name: defaultRetryTemplate #<retry-template-bean 명 등록>
+        #error-handler-definition: productErrorHandler
+    kafka.binder:
+      brokers: 127.0.0.1
+      defaultBrokerPort: 9092
+
+management:
+  endpoints:
+    web:
+      exposure.include: "*"
+      base-path: /actuator
+      path-mapping:
+        health: health
+    health.show-details: "ALWAYS"
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    initialInstanceInfoReplicationIntervalSeconds: 5
+    registryFetchIntervalSeconds: 5
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 5
