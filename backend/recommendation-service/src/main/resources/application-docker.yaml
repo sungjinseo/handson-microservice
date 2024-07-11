@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 80
 
 spring:
   config:
@@ -17,7 +17,7 @@ spring:
       password: greatseo
 
   rabbitmq:
-    host: rabbitmq
+    host: rabbit-haproxy
     port: 5672
     username: greatseo
     password: greatseo
@@ -30,7 +30,17 @@ spring:
         group: recommendationGroup
         consumer:
           retry-template-name: defaultRetryTemplate #<retry-template-bean 명 등록>
-        #error-handler-definition: productErrorHandler
     kafka.binder:
       brokers: 127.0.0.1
       defaultBrokerPort: 9092
+
+management:
+  endpoints:
+    web:
+      exposure.include: "*"
+      base-path: /actuator
+      path-mapping:
+        health: health
+    health.show-details: "ALWAYS"
+
+eureka.client.serviceUrl.defaultZone: http://eureka:8761/eureka/

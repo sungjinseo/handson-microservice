@@ -1,5 +1,6 @@
 package dev.greatseo.api.core.product;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -20,6 +21,7 @@ public interface ProductService {
             value    = "/",
             consumes = "application/json",
             produces = "application/json")
+    @ResponseStatus(HttpStatus.CREATED)
     ProductDto createProduct(@RequestBody ProductDto body);
 
     /**
@@ -31,6 +33,7 @@ public interface ProductService {
     @GetMapping(
             value    = "/{productId}",
             produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
     Mono<ProductDto> getProduct(@PathVariable int productId);
 
     /**
@@ -41,5 +44,5 @@ public interface ProductService {
      * @param productId
      */
     @DeleteMapping(value = "/{productId}")
-    ResponseEntity deleteProduct(@PathVariable int productId);
+    void deleteProduct(@PathVariable int productId);
 }

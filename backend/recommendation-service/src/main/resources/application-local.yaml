@@ -35,6 +35,15 @@ spring:
       brokers: 127.0.0.1
       defaultBrokerPort: 9092
 
+management:
+  endpoints:
+    web:
+      exposure.include: "*"
+      base-path: /actuator
+      path-mapping:
+        health: health
+    health.show-details: "ALWAYS"
+
 eureka:
   client:
     serviceUrl:

@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 80
 
 spring:
   config:
@@ -8,20 +8,21 @@ spring:
 
   cloud.stream:
     defaultBinder: rabbit
-    default.contentType: application/json
-    bindings.input:
-      destination: product
-      group: productGroup
+    bindings:
+      product-in-0:
+        destination: product
+        group: productGroup
+        consumer:
+          retry-template-name: defaultRetryTemplate #<retry-template-bean 명 등록>
+    kafka.binder:
+      brokers: kafka
+      defaultBrokerPort: 9092
 
   rabbitmq:
-    host: rabbitmq
+    host: rabbit-haproxy
     port: 5672
     username: greatseo
     password: greatseo
-
-  cloud.stream.kafka.binder.brokers: kafka
-
-  #cloud.stream.kafka.binder.brokers: kafka
 
   data:
     mongodb:
@@ -32,5 +33,14 @@ spring:
       database: greatseo
       username: greatseo
       password: greatseo
+
+management:
+  endpoints:
+    web:
+      exposure.include: "*"
+      base-path: /actuator
+      path-mapping:
+        health: health
+    health.show-details: "ALWAYS"
 
 eureka.client.serviceUrl.defaultZone: http://eureka:8761/eureka/

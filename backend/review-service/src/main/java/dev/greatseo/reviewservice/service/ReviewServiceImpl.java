@@ -18,6 +18,7 @@ import reactor.core.scheduler.Scheduler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static java.util.logging.Level.FINE;
 
@@ -45,17 +46,17 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public ReviewDto createReview(ReviewDto body) {
 
-        if (body.getProductId() < 1) throw new InvalidInputException("Invalid productId: " + body.getProductId());
+        if (body.productId() < 1) throw new InvalidInputException("Invalid productId: " + body.productId());
 
         try {
             ReviewEntity entity = mapper.apiToEntity(body);
             ReviewEntity newEntity = repository.save(entity);
 
-            LOGGER.debug("createReview: created a review entity: {}/{}", body.getProductId(), body.getReviewId());
+            LOGGER.debug("createReview: created a review entity: {}/{}", body.productId(), body.reviewId());
             return mapper.entityToApi(newEntity);
 
         } catch (DataIntegrityViolationException dive) {
-            throw new InvalidInputException("Duplicate key, Product Id: " + body.getProductId() + ", Review Id:" + body.getReviewId());
+            throw new InvalidInputException("Duplicate key, Product Id: " + body.productId() + ", Review Id:" + body.reviewId());
         }
     }
 
@@ -71,13 +72,20 @@ public class ReviewServiceImpl implements ReviewService {
 
     protected List<ReviewDto> getByProductId(int productId) {
 
+        if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
+
         List<ReviewEntity> entityList = repository.findByProductId(productId);
-        List<ReviewDto> list = mapper.entityListToApiList(entityList);
-        list.forEach(e -> e.setServiceAddress(serviceUtil.getServiceAddress()));
-
-        LOGGER.debug("getReviews: response size: {}", list.size());
-
-        return list;
+        //List<ReviewDto> list = mapper.entityListToApiList(entityList);
+        //LOGGER.debug("getReviews: response size: {}", list.size());
+        return entityList.stream()
+                .map(mapper::entityToApi).map(item-> new ReviewDto(
+                        item.productId(),
+                        item.reviewId(),
+                        item.author(),
+                        item.subject(),
+                        item.content(),
+                        serviceUtil.getServiceAddress())
+        ).toList();
     }
 
     @Override

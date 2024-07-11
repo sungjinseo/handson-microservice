@@ -1,16 +1,22 @@
 server:
-  port: 8080
+  port: 80
 
 spring:
   config:
     activate:
       on-profile: docker
 
+  rabbitmq:
+    host: rabbit-haproxy
+    port: 5672
+    username: greatseo
+    password: greatseo
+
   cloud.stream:
     defaultBinder: rabbit
     bindings:
-      reviews-in-0:
-        destination: reviews
+      review-in-0:
+        destination: review
         group: reviewGroup
         consumer:
           retry-template-name: defaultRetryTemplate #<retry-template-bean 명 등록>
@@ -32,5 +38,14 @@ spring:
       hibernate:
         format_sql: true #To beautify or pretty print the SQL
         show_sql: true #show sql
+
+management:
+  endpoints:
+    web:
+      exposure.include: "*"
+      base-path: /actuator
+      path-mapping:
+        health: health
+    health.show-details: "ALWAYS"
 
 eureka.client.serviceUrl.defaultZone: http://eureka:8761/eureka/

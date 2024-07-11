@@ -1,6 +1,7 @@
 spring:
   application:
     name: review
+
   profiles:
     active:
       - local

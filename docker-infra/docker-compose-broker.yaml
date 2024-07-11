@@ -1,37 +1,53 @@
 services:
-  rabbitmq-1:
+  rabbitmq01:
     image: rabbitmq:3.13.3-management
-    container_name: rabbitmq-1
-    hostname: rabbitmq
+    hostname: rabbitmq01
     environment:
-      - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST}
+      - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
+    volumes:
+      - ./cluster-entrypoint.sh:/usr/local/bin/cluster-entrypoint.sh
+      - rabbitmq01-data:/var/lib/rabbitmq/
+      - rabbitmq01-logs:/var/log/rabbitmq
+    entrypoint: /usr/local/bin/cluster-entrypoint.sh
+
+  rabbitmq02:
+    image: rabbitmq:3.13.3-management
+    hostname: rabbitmq02
+    depends_on:
+      - rabbitmq01
+    environment:
+      - JOIN_CLUSTER_HOST=rabbitmq01
+      - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
+    volumes:
+      - ./cluster-entrypoint.sh:/usr/local/bin/cluster-entrypoint.sh
+      - rabbitmq02-data:/var/lib/rabbitmq/
+      - rabbitmq02-logs:/var/log/rabbitmq
+    entrypoint: /usr/local/bin/cluster-entrypoint.sh
+
+  rabbit-haproxy:
+    image: haproxy:1.7
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - rabbitmq01
+      - rabbitmq02
     ports:
       - 15672:15672
       - 5672:5672
-  rabbitmq-2:
-    image: rabbitmq:3.13.3-management
-    container_name: rabbitmq-2
-    hostname: rabbitmq
-    depends_on:
-      - rabbitmq-1
-    environment:
-      - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
 
   Kafka00Service:
     image: bitnami/kafka:3.5.1-debian-11-r44
-    restart: unless-stopped
-    container_name: Kafka00Container
+    container_name: kafka00
     ports:
       - '10000:9094'
     environment:
       - KAFKA_CFG_BROKER_ID=0
       - KAFKA_CFG_NODE_ID=0
       - KAFKA_KRAFT_CLUSTER_ID=HsDBs9l6UUmQq7Y5E6bNlw
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@Kafka00Service:9093,1@Kafka01Service:9093,2@Kafka02Service:9093
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@Kafka00Service:9093,1@Kafka01Service:9093
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
@@ -46,15 +62,14 @@ services:
       - Kafka00:/bitnami/kafka
   Kafka01Service:
     image: bitnami/kafka:3.5.1-debian-11-r44
-    restart: unless-stopped
-    container_name: Kafka01Container
+    container_name: kafka01
     ports:
       - '10001:9094'
     environment:
       - KAFKA_CFG_BROKER_ID=1
       - KAFKA_CFG_NODE_ID=1
       - KAFKA_KRAFT_CLUSTER_ID=HsDBs9l6UUmQq7Y5E6bNlw
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@Kafka00Service:9093,1@Kafka01Service:9093,2@Kafka02Service:9093
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@Kafka00Service:9093,1@Kafka01Service:9093
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
@@ -72,8 +87,7 @@ services:
 
   KafkaWebUiService:
     image: provectuslabs/kafka-ui:latest
-    restart: always
-    container_name: KafkaWebUiContainer
+    container_name: kafka-webui
     ports:
       - '8085:8080' # 호스트의 8085 포트를 컨테이너의 8080 포트에 바인딩
     environment:
@@ -91,6 +105,10 @@ volumes:
     driver: local
   Kafka01:
     driver: local
+  rabbitmq01-data:
+  rabbitmq01-logs:
+  rabbitmq02-data:
+  rabbitmq02-logs:
 
 networks:
   default:

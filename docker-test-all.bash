@@ -44,13 +44,14 @@ function assertEqual() {
 
     local expected=$1
     local actual=$2
+    local testname=$3
 
     if [ "$actual" = "$expected" ]
     then
-        echo "Test OK (actual value: $actual)"
+        echo "$testname : Test OK (actual value: $actual)"
         return 0
     else
-        echo "Test FAILED, EXPECTED VALUE: $expected, ACTUAL VALUE: $actual, WILL ABORT"
+        echo "$testname : Test FAILED, EXPECTED VALUE: $expected, ACTUAL VALUE: $actual, WILL ABORT"
         return 1
     fi
 }
@@ -86,20 +87,20 @@ function waitForService() {
 function testCompositeCreated() {
 
     # Expect that the Product Composite for productId $PROD_ID_REVS_RECS has been created with three recommendations and three reviews
-    if ! assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s"
+    if ! assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s" "test composite curl"
     then
         echo -n "FAIL"
         return 1
     fi
 
     set +e
-    assertEqual "$PROD_ID_REVS_RECS" $(echo $RESPONSE | jq .productId)
+    assertEqual "$PROD_ID_REVS_RECS" $(echo $RESPONSE | jq .productId) "productid test"
     if [ "$?" -eq "1" ] ; then return 1; fi
 
-    assertEqual 3 $(echo $RESPONSE | jq ".recommendations | length")
+    assertEqual 3 $(echo $RESPONSE | jq ".recommendations | length") "recommend length test"
     if [ "$?" -eq "1" ] ; then return 1; fi
 
-    assertEqual 3 $(echo $RESPONSE | jq ".reviews | length")
+    assertEqual 3 $(echo $RESPONSE | jq ".reviews | length") "reviews test"
     if [ "$?" -eq "1" ] ; then return 1; fi
 
     set -e
@@ -131,11 +132,15 @@ function recreateComposite() {
     local productId=$1
     local composite=$2
 
+    echo "remake product info : $productId"
+
     assertCurl 200 "curl -X DELETE http://$HOST:$PORT/product-composite/${productId} -s"
     curl -X POST http://$HOST:$PORT/product-composite -H "Content-Type: application/json" --data "$composite"
 }
 
 function setupTestdata() {
+
+  echo "begin setup testdata : $PROD_ID_NO_RECS"
 
     body="{\"productId\":$PROD_ID_NO_RECS"
     body+=\
@@ -169,6 +174,7 @@ function setupTestdata() {
     ]}'
     recreateComposite 1 "$body"
 
+  echo "end setup testdata"
 }
 
 set -e
@@ -194,33 +200,33 @@ setupTestdata
 waitForMessageProcessing
 
 # Verify that a normal request works, expect three recommendations and three reviews
-assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s"
-assertEqual "$PROD_ID_REVS_RECS" $(echo $RESPONSE | jq .productId)
-assertEqual 3 $(echo $RESPONSE | jq ".recommendations | length")
-assertEqual 3 $(echo $RESPONSE | jq ".reviews | length")
+assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s" "curl test"
+assertEqual "$PROD_ID_REVS_RECS" $(echo $RESPONSE | jq .productId) "product test-1"
+assertEqual 3 $(echo $RESPONSE | jq ".recommendations | length") "recommendation test-1"
+assertEqual 3 $(echo $RESPONSE | jq ".reviews | length") "reviews test-1"
 
 # Verify that a 404 (Not Found) error is returned for a non existing productId ($PROD_ID_NOT_FOUND)
 assertCurl 404 "curl http://$HOST:$PORT/product-composite/$PROD_ID_NOT_FOUND -s"
 
 # Verify that no recommendations are returned for productId $PROD_ID_NO_RECS
 assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_NO_RECS -s"
-assertEqual "$PROD_ID_NO_RECS" $(echo $RESPONSE | jq .productId)
-assertEqual 0 $(echo $RESPONSE | jq ".recommendations | length")
-assertEqual 3 $(echo $RESPONSE | jq ".reviews | length")
+assertEqual "$PROD_ID_NO_RECS" $(echo $RESPONSE | jq .productId) "product test-2"
+assertEqual 0 $(echo $RESPONSE | jq ".recommendations | length") "recommendation test-2"
+assertEqual 3 $(echo $RESPONSE | jq ".reviews | length") "reviews test-2"
 
 # Verify that no reviews are returned for productId $PROD_ID_NO_REVS
 assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_NO_REVS -s"
-assertEqual $PROD_ID_NO_REVS $(echo $RESPONSE | jq .productId)
-assertEqual 3 $(echo $RESPONSE | jq ".recommendations | length")
-assertEqual 0 $(echo $RESPONSE | jq ".reviews | length")
+assertEqual $PROD_ID_NO_REVS $(echo $RESPONSE | jq .productId) "product test-3"
+assertEqual 3 $(echo $RESPONSE | jq ".recommendations | length") "recommendation test-3"
+assertEqual 0 $(echo $RESPONSE | jq ".reviews | length") "reviews test-3"
 
 # Verify that a 422 (Unprocessable Entity) error is returned for a productId that is out of range (-1)
 assertCurl 422 "curl http://$HOST:$PORT/product-composite/-1 -s"
-assertEqual "\"Invalid productId: -1\"" "$(echo $RESPONSE | jq .message)"
+assertEqual "\"Invalid productId: -1\"" "$(echo $RESPONSE | jq .message)" "invalid value check"
 
 # Verify that a 400 (Bad Request) error error is returned for a productId that is not a number, i.e. invalid format
 assertCurl 400 "curl http://$HOST:$PORT/product-composite/invalidProductId -s"
-assertEqual "\"Type mismatch.\"" "$(echo $RESPONSE | jq .message)"
+assertEqual "\"Type mismatch.\"" "$(echo $RESPONSE | jq .detail)" "type missmatch check"
 
 echo "End, all tests OK:" `date`
 

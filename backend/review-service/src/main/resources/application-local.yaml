@@ -29,8 +29,8 @@ spring:
   cloud.stream:
     defaultBinder: rabbit
     bindings:
-      reviews-in-0:
-        destination: reviews
+      review-in-0:
+        destination: review
         group: reviewGroup
         consumer:
           retry-template-name: defaultRetryTemplate #<retry-template-bean 명 등록>

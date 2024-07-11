@@ -1,23 +1,18 @@
 package dev.greatseo.productservice.service;
 
 import dev.greatseo.api.core.product.ProductDto;
+import dev.greatseo.api.core.product.ProductService;
 import dev.greatseo.productservice.repository.ProductEntity;
 import dev.greatseo.productservice.repository.ProductRepository;
+import dev.greatseo.util.exceptions.InvalidInputException;
+import dev.greatseo.util.exceptions.NotFoundException;
+import dev.greatseo.util.http.ServiceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-
-import dev.greatseo.api.core.product.ProductService;
-import dev.greatseo.util.exceptions.InvalidInputException;
-import dev.greatseo.util.exceptions.NotFoundException;
-import dev.greatseo.util.http.ServiceUtil;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
-
-import java.net.URI;
 
 import static reactor.core.publisher.Mono.error;
 
@@ -94,12 +89,11 @@ public class ProductServiceImpl implements ProductService {
      * @param productId
      */
     @Override
-    public ResponseEntity deleteProduct(int productId) {
+    public void deleteProduct(int productId) {
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
         LOGGER.debug("deleteProduct: tries to delete an entity with productId: {}", productId);
         repository.findByProductId(productId).log().map(e -> repository.delete(e)).flatMap(e -> e).block();
 
-        return ResponseEntity.noContent().build();
     }
 }

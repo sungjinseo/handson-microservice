@@ -31,7 +31,7 @@ public class ReviewEventSevice {
     }
 
     @Bean
-    public Consumer<Event<Integer, String>> reviews() {
+    public Consumer<Event<Integer, String>> review() {
         return eventItem -> {
             try {
                 LOGGER.info("review event-type: {}",eventItem.getEventType());

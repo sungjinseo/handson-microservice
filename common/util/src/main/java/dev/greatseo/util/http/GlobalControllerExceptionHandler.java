@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.reactive.result.method.annotation.ResponseEntityExceptionHandler;
 
@@ -15,12 +16,14 @@ import org.springframework.web.reactive.result.method.annotation.ResponseEntityE
 public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalControllerExceptionHandler.class);
 
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(NotFoundException.class)
     @ResponseBody
     public HttpErrorInfo handleNotFoundExceptions(ServerHttpRequest request, Exception ex) {
         return createHttpErrorInfo(HttpStatus.NOT_FOUND, request, ex);
     }
 
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ExceptionHandler(InvalidInputException.class)
     @ResponseBody
     public HttpErrorInfo handleInvalidInputException(ServerHttpRequest request, Exception ex) {

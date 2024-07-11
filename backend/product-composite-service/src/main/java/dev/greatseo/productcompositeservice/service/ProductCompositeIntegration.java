@@ -15,15 +15,8 @@ import dev.greatseo.util.http.HttpErrorInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.health.CompositeReactiveHealthContributor;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.ReactiveHealthContributor;
-import org.springframework.boot.actuate.health.ReactiveHealthIndicator;
 import org.springframework.cloud.stream.function.StreamBridge;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -35,7 +28,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -54,8 +46,9 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     private final ObjectMapper objMapper;
     private final StreamBridge streamBridge;
 
-    private static final String PRODUCTS_PUBLISH = "products-out-0";
-    private static final String REVIEWS_PUBLISH = "reviews-out-0";
+    private static final String PRODUCT_PUBLISH = "product-out-0";
+    private static final String RECOMMENDATION_PUBLISH = "recommendation-out-0";
+    private static final String REVIEWS_PUBLISH = "review-out-0";
 
     private final String productServiceUrl = "http://product/";
     private final String recommendationServiceUrl = "http://recommendation/";
@@ -67,21 +60,6 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
         this.webClientBuilder = webClientBuilder;
         this.objMapper = objMapper;
         this.streamBridge = streamBridge;
-    }
-
-    @Bean(name = "Core System Microservices")
-    ReactiveHealthContributor CoreServicesHealth() {
-
-        ReactiveHealthIndicator productHealthIndicator = this::getProductHealth,
-                recommendationHealthIndicator = this::getRecommendationHealth,
-                reviewHealthIndicator = this::getReviewHealth;
-
-        Map<String, ReactiveHealthContributor> allIndicators = Map.of(
-                "Product Service", productHealthIndicator,
-                "Recommendation Service", recommendationHealthIndicator,
-                "Review Service", reviewHealthIndicator);
-
-        return CompositeReactiveHealthContributor.fromMap(allIndicators);
     }
 
     /**
@@ -100,7 +78,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
 
             ObjectMapper mapper = new ObjectMapper();
             final String messageKey = UUID.randomUUID().toString();
-            streamBridge.send(PRODUCTS_PUBLISH
+            streamBridge.send(PRODUCT_PUBLISH
                     , MessageBuilder
                             .withPayload(new Event(Event.Type.CREATE, body.productId(), mapper.writeValueAsString(body)))
                             .setHeader("MESSAGE_KEY", messageKey)
@@ -132,7 +110,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
                     .retrieve()
                     .bodyToMono(ProductDto.class)
                     .log()
-                    .onErrorMap(WebClientResponseException.class, ex -> handleException(ex));
+                    .onErrorMap(WebClientResponseException.class, this::handleException);
 
         } catch (HttpClientErrorException ex) {
             throw handleHttpClientException(ex);
@@ -148,8 +126,19 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
      * @param productId
      */
     @Override
-    public ResponseEntity deleteProduct(int productId) {
-        return ResponseEntity.noContent().build();
+    public void deleteProduct(int productId) {
+        try {
+            final String messageKey = UUID.randomUUID().toString();
+            streamBridge.send(PRODUCT_PUBLISH
+                    , MessageBuilder
+                            .withPayload(new Event(Event.Type.DELETE, productId, null))
+                            .setHeader("MESSAGE_KEY", messageKey)
+                            .build());
+            LOGGER.info("Publish the product by msgKey test value: {}", messageKey);
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
     }
 
     /**
@@ -160,8 +149,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
      */
     @Override
     public Flux<RecommendationDto> getRecommendations(int productId) {
-
-        String url = recommendationServiceUrl  + "recommendation/"+ productId;
+        String url = recommendationServiceUrl  + "recommendation?productId="+ productId;
 
         return this.getWebClient()
                 .get()
@@ -173,12 +161,42 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
 
     @Override
     public RecommendationDto createRecommendation(RecommendationDto body) {
-        return null;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            final String messageKey = UUID.randomUUID().toString();
+
+            LOGGER.info(mapper.writeValueAsString(body));
+
+            streamBridge.send(RECOMMENDATION_PUBLISH
+                    , MessageBuilder
+                            .withPayload(new Event(Event.Type.CREATE, body.productId(), mapper.writeValueAsString(body)))
+                            .setHeader("MESSAGE_KEY", messageKey)
+                            .build());
+            LOGGER.info("Publish the recommendation by msgKey test value: {}", messageKey);
+            return body;
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void deleteRecommendations(int productId) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            final String messageKey = UUID.randomUUID().toString();
+            streamBridge.send(RECOMMENDATION_PUBLISH
+                    , MessageBuilder
+                            .withPayload(new Event(Event.Type.DELETE, productId, null))
+                            .setHeader("MESSAGE_KEY", messageKey)
+                            .build());
+            LOGGER.info("Publish the recommendation by msgKey test value: {}", messageKey);
 
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
     }
 
     /**
@@ -204,12 +222,38 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
 
     @Override
     public ReviewDto createReview(ReviewDto body) {
-        return null;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            final String messageKey = UUID.randomUUID().toString();
+            streamBridge.send(REVIEWS_PUBLISH
+                    , MessageBuilder
+                            .withPayload(new Event(Event.Type.CREATE, body.productId(), mapper.writeValueAsString(body)))
+                            .setHeader("MESSAGE_KEY", messageKey)
+                            .build());
+            LOGGER.info("Publish the review by msgKey test value: {}", messageKey);
+            return body;
+
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void deleteReviews(int productId) {
+        try {
+            final String messageKey = UUID.randomUUID().toString();
+            streamBridge.send(REVIEWS_PUBLISH
+                    , MessageBuilder
+                            .withPayload(new Event(Event.Type.DELETE, productId, null))
+                            .setHeader("MESSAGE_KEY", messageKey)
+                            .build());
+            LOGGER.info("Publish the recommendation by msgKey test value: {}", messageKey);
 
+        } catch (HttpClientErrorException ex) {
+            throw handleHttpClientException(ex);
+        }
     }
 
     private RuntimeException handleHttpClientException(HttpClientErrorException ex) {
@@ -262,31 +306,6 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
         } catch (IOException ioex) {
             return ex.getMessage();
         }
-    }
-
-    public Mono<Health> getProductHealth() {
-        return getHealth(productServiceUrl);
-    }
-
-    public Mono<Health> getRecommendationHealth() {
-        return getHealth(recommendationServiceUrl);
-    }
-
-    public Mono<Health> getReviewHealth() {
-        return getHealth(reviewServiceUrl);
-    }
-
-    private Mono<Health> getHealth(String url) {
-        url += "/actuator/health";
-        LOGGER.debug("Will call the Health API on URL: {}", url);
-        return getWebClient()
-                .get()
-                .uri(url)
-                .retrieve()
-                .bodyToMono(String.class)
-                .map(s -> new Health.Builder().up().build())
-                .onErrorResume(ex -> Mono.just(new Health.Builder().down(ex).build()))
-                .log();
     }
 
     private WebClient getWebClient() {
