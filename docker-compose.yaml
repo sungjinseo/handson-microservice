@@ -32,8 +32,6 @@ services:
       - ARG_AGENT_ID=agent1
       - ARG_APP_NAME=product-composite-service
       - ARG_ACTIVE=docker
-    ports:
-      - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
 

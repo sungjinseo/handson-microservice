@@ -1,6 +1,6 @@
 FROM openjdk:17
 
-EXPOSE 80
+EXPOSE 8080
 
 ADD ./build/libs/*.jar app.jar
 

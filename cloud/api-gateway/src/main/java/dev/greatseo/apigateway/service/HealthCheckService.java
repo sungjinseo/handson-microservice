@@ -1,4 +1,4 @@
-package dev.greatseo.productcompositeservice.service;
+package dev.greatseo.apigateway.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +22,6 @@ public class HealthCheckService {
     private WebClient webClient;
     private final WebClient.Builder webClientBuilder;
 
-    private final String productServiceUrl = "http://product/";
-    private final String recommendationServiceUrl = "http://recommendation/";
-    private final String reviewServiceUrl = "http://review/";
-
     @Autowired
     public HealthCheckService(WebClient.Builder webClientBuilder
     ) {
@@ -35,28 +31,19 @@ public class HealthCheckService {
     @Bean(name = "Core System Microservices")
     ReactiveHealthContributor CoreServicesHealth() {
 
-        ReactiveHealthIndicator productHealthIndicator = this::getProductHealth,
-                recommendationHealthIndicator = this::getRecommendationHealth,
-                reviewHealthIndicator = this::getReviewHealth;
+        ReactiveHealthIndicator productHealthIndicator = ()->this.getHealth("http://product:8080"),
+                recommendationHealthIndicator = ()->this.getHealth("http://recommendation:8080"),
+                reviewHealthIndicator = ()->this.getHealth("http://review:8080"),
+                productCompositeHealthIndicator = ()->this.getHealth("http://product-composite:8080");
 
         Map<String, ReactiveHealthContributor> allIndicators = Map.of(
-                "Product Service", productHealthIndicator,
-                "Recommendation Service", recommendationHealthIndicator,
-                "Review Service", reviewHealthIndicator);
+                "product", productHealthIndicator,
+                "recommendation", recommendationHealthIndicator,
+                "review", reviewHealthIndicator,
+                "product-composite", productCompositeHealthIndicator
+                );
 
         return CompositeReactiveHealthContributor.fromMap(allIndicators);
-    }
-
-    public Mono<Health> getProductHealth() {
-        return getHealth(productServiceUrl);
-    }
-
-    public Mono<Health> getRecommendationHealth() {
-        return getHealth(recommendationServiceUrl);
-    }
-
-    public Mono<Health> getReviewHealth() {
-        return getHealth(reviewServiceUrl);
     }
 
     private Mono<Health> getHealth(String url) {

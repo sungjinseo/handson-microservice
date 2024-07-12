@@ -15,18 +15,11 @@
             <option value="$PROJECT_DIR$/backend/recommendation-service" />
             <option value="$PROJECT_DIR$/backend/review-service" />
             <option value="$PROJECT_DIR$/cloud" />
+            <option value="$PROJECT_DIR$/cloud/api-gateway" />
             <option value="$PROJECT_DIR$/cloud/eureka-server" />
             <option value="$PROJECT_DIR$/common" />
             <option value="$PROJECT_DIR$/common/api" />
             <option value="$PROJECT_DIR$/common/util" />
-          </set>
-        </option>
-      </GradleProjectSettings>
-      <GradleProjectSettings>
-        <option name="externalProjectPath" value="$PROJECT_DIR$/cloud/eureka-server" />
-        <option name="modules">
-          <set>
-            <option value="$PROJECT_DIR$/cloud/eureka-server" />
           </set>
         </option>
       </GradleProjectSettings>

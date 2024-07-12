@@ -8,3 +8,4 @@ include ':backend:recommendation-service'
 include ':backend:review-service'
 
 include ':cloud:eureka-server'
+include ':cloud:api-gateway'

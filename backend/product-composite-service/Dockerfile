@@ -19,9 +19,6 @@ RUN tar -zxvf /usr/local/pinpoint-agent-${PINPOINT_VER}.tar.gz -C /usr/local
 RUN sed -i 's/profiler.transport.grpc.collector.ip=127.0.0.1/profiler.transport.grpc.collector.ip=${COLLECTOR_IP}/g' /usr/local/pinpoint-agent-${PINPOINT_VER}/pinpoint-root.config
 RUN sed -i 's/profiler.collector.ip=127.0.0.1/profiler.collector.ip=${COLLECTOR_IP}/g' /usr/local/pinpoint-agent-${PINPOINT_VER}/pinpoint-root.config
 
-EXPOSE 8080
-
-
 RUN echo $'java -jar \
   -javaagent:/usr/local/pinpoint-agent-${PINPOINT_VER}/pinpoint-bootstrap-${PINPOINT_VER}.jar \
   -Dpinpoint.config=/usr/local/pinpoint-agent-${PINPOINT_VER}/pinpoint-root.config \
@@ -29,5 +26,7 @@ RUN echo $'java -jar \
   -Dpinpoint.applicationName=${APP_NAME} \
   -Dspring.profiles.active=${ACTIVE} \
    /app.jar' \ >> /docker_entrypoint.sh
+
+EXPOSE 8080
 
 ENTRYPOINT ["sh", "/docker_entrypoint.sh"]

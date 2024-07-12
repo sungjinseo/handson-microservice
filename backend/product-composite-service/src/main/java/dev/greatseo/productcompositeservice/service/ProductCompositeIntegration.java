@@ -50,7 +50,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     private static final String RECOMMENDATION_PUBLISH = "recommendation-out-0";
     private static final String REVIEWS_PUBLISH = "review-out-0";
 
-    private final String productServiceUrl = "http://product/";
+    private final String productServiceUrl = "http://product:8080/";
     private final String recommendationServiceUrl = "http://recommendation/";
     private final String reviewServiceUrl = "http://review/";;
 

@@ -2,8 +2,14 @@ services:
   eureka:
     build: eureka-server
     mem_limit: 350m
+
+  gateway:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    build: api-gateway
+    mem_limit: 350m
     ports:
-      - "8761:8761"
+      - "8080:8080"
 
 networks:
   default:

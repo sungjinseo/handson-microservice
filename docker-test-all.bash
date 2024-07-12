@@ -48,7 +48,7 @@ function assertEqual() {
 
     if [ "$actual" = "$expected" ]
     then
-        echo "$testname : Test OK (actual value: $actual)"
+        echo -e "Test OK (actual value: $actual)\n - $testname"
         return 0
     else
         echo "$testname : Test FAILED, EXPECTED VALUE: $expected, ACTUAL VALUE: $actual, WILL ABORT"
@@ -131,8 +131,6 @@ function waitForMessageProcessing() {
 function recreateComposite() {
     local productId=$1
     local composite=$2
-
-    echo "remake product info : $productId"
 
     assertCurl 200 "curl -X DELETE http://$HOST:$PORT/product-composite/${productId} -s"
     curl -X POST http://$HOST:$PORT/product-composite -H "Content-Type: application/json" --data "$composite"
