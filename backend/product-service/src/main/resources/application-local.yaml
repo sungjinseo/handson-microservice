@@ -1,55 +1,32 @@
-server:
-  port: 7001
-
 spring:
   config:
     activate:
       on-profile: local
 
-  data:
-    mongodb:
-      auto-index-creation: true
-      authentication-database: admin
-      host: localhost
-      port: 3003
-      database: greatseo
-      username: greatseo
-      password: greatseo
+server:
+  port: 7001
 
-  rabbitmq:
+app:
+  eureka-username: u
+  eureka-password: p
+  eureka-server: localhost
+
+spring.data:
+  mongodb:
+    #auto-index-creation: true
+    #authentication-database: admin
     host: localhost
-    port: 5672
-    username: greatseo
-    password: greatseo
+    port: 3003
+    database: product-db
+    #username: greatseo
+    #password: greatseo
 
-  cloud.stream:
-    defaultBinder: rabbit
-    bindings:
-      product-in-0:
-        destination: product
-        group: productGroup
-        consumer:
-          retry-template-name: defaultRetryTemplate #<retry-template-bean 명 등록>
-        #error-handler-definition: productErrorHandler
-    kafka.binder:
-      brokers: 127.0.0.1
-      defaultBrokerPort: 9092
+spring.rabbitmq:
+  host: localhost
+  port: 5672
+  username: greatseo
+  password: greatseo
 
-management:
-  endpoints:
-    web:
-      exposure.include: "*"
-      base-path: /actuator
-      path-mapping:
-        health: health
-    health.show-details: "ALWAYS"
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-    initialInstanceInfoReplicationIntervalSeconds: 5
-    registryFetchIntervalSeconds: 5
-  instance:
-    leaseRenewalIntervalInSeconds: 5
-    leaseExpirationDurationInSeconds: 5
+spring.cloud.stream.kafka.binder:
+  brokers: 127.0.0.1
+  defaultBrokerPort: 9092

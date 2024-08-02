@@ -9,7 +9,7 @@
 #   HOST=localhost PORT=7000 ./test-em-all.bash
 #
 : ${HOST=localhost}
-: ${PORT=8080}
+: ${PORT=8443}
 : ${PROD_ID_REVS_RECS=2}
 : ${PROD_ID_NOT_FOUND=14}
 : ${PROD_ID_NO_RECS=114}
@@ -87,7 +87,7 @@ function waitForService() {
 function testCompositeCreated() {
 
     # Expect that the Product Composite for productId $PROD_ID_REVS_RECS has been created with three recommendations and three reviews
-    if ! assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s" "test composite curl"
+    if ! assertCurl 200 "curl https://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s" "test composite curl"
     then
         echo -n "FAIL"
         return 1
@@ -132,7 +132,7 @@ function recreateComposite() {
     local productId=$1
     local composite=$2
 
-    assertCurl 200 "curl -X DELETE http://$HOST:$PORT/product-composite/${productId} -s"
+    assertCurl 200 "curl -X DELETE https://$HOST:$PORT/product-composite/${productId} -s"
     curl -X POST http://$HOST:$PORT/product-composite -H "Content-Type: application/json" --data "$composite"
 }
 
@@ -191,39 +191,39 @@ then
     docker-compose up -d
 fi
 
-waitForService curl http://$HOST:$PORT/actuator/health
+waitForService curl https://$HOST:$PORT/actuator/health
 
 setupTestdata
 
 waitForMessageProcessing
 
 # Verify that a normal request works, expect three recommendations and three reviews
-assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s" "curl test"
+assertCurl 200 "curl https://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s" "curl test"
 assertEqual "$PROD_ID_REVS_RECS" $(echo $RESPONSE | jq .productId) "product test-1"
 assertEqual 3 $(echo $RESPONSE | jq ".recommendations | length") "recommendation test-1"
 assertEqual 3 $(echo $RESPONSE | jq ".reviews | length") "reviews test-1"
 
 # Verify that a 404 (Not Found) error is returned for a non existing productId ($PROD_ID_NOT_FOUND)
-assertCurl 404 "curl http://$HOST:$PORT/product-composite/$PROD_ID_NOT_FOUND -s"
+assertCurl 404 "curl https://$HOST:$PORT/product-composite/$PROD_ID_NOT_FOUND -s"
 
 # Verify that no recommendations are returned for productId $PROD_ID_NO_RECS
-assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_NO_RECS -s"
+assertCurl 200 "curl https://$HOST:$PORT/product-composite/$PROD_ID_NO_RECS -s"
 assertEqual "$PROD_ID_NO_RECS" $(echo $RESPONSE | jq .productId) "product test-2"
 assertEqual 0 $(echo $RESPONSE | jq ".recommendations | length") "recommendation test-2"
 assertEqual 3 $(echo $RESPONSE | jq ".reviews | length") "reviews test-2"
 
 # Verify that no reviews are returned for productId $PROD_ID_NO_REVS
-assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_NO_REVS -s"
+assertCurl 200 "curl https://$HOST:$PORT/product-composite/$PROD_ID_NO_REVS -s"
 assertEqual $PROD_ID_NO_REVS $(echo $RESPONSE | jq .productId) "product test-3"
 assertEqual 3 $(echo $RESPONSE | jq ".recommendations | length") "recommendation test-3"
 assertEqual 0 $(echo $RESPONSE | jq ".reviews | length") "reviews test-3"
 
 # Verify that a 422 (Unprocessable Entity) error is returned for a productId that is out of range (-1)
-assertCurl 422 "curl http://$HOST:$PORT/product-composite/-1 -s"
+assertCurl 422 "curl https://$HOST:$PORT/product-composite/-1 -s"
 assertEqual "\"Invalid productId: -1\"" "$(echo $RESPONSE | jq .message)" "invalid value check"
 
 # Verify that a 400 (Bad Request) error error is returned for a productId that is not a number, i.e. invalid format
-assertCurl 400 "curl http://$HOST:$PORT/product-composite/invalidProductId -s"
+assertCurl 400 "curl https://$HOST:$PORT/product-composite/invalidProductId -s"
 assertEqual "\"Type mismatch.\"" "$(echo $RESPONSE | jq .detail)" "type missmatch check"
 
 echo "End, all tests OK:" `date`

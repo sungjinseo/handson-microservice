@@ -1,59 +1,36 @@
-server:
-  port: 7003
-
 spring:
   config:
     activate:
       on-profile: local
 
-  datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3002/greatseo?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
-    username: greatseo
-    password: greatseo
+server:
+  port: 7003
 
-  jpa:
+app:
+  eureka-username: u
+  eureka-password: p
+  eureka-server: localhost
+
+spring.datasource:
+  driver-class-name: org.mariadb.jdbc.Driver
+  url: jdbc:mariadb://localhost:3002/greatseo?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+  username: greatseo
+  password: greatseo
+
+spring.jpa:
+  hibernate:
+    ddl-auto: update
+  properties:
     hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true #To beautify or pretty print the SQL
-        show_sql: true #show sql
+      format_sql: true #To beautify or pretty print the SQL
+      show_sql: true #show sql
 
-  rabbitmq:
-    host: 127.0.0.1
-    port: 5672
-    username: greatseo
-    password: greatseo
+spring.rabbitmq:
+  host: localhost
+  port: 5672
+  username: greatseo
+  password: greatseo
 
-  cloud.stream:
-    defaultBinder: rabbit
-    bindings:
-      review-in-0:
-        destination: review
-        group: reviewGroup
-        consumer:
-          retry-template-name: defaultRetryTemplate #<retry-template-bean 명 등록>
-        #error-handler-definition: productErrorHandler
-    kafka.binder:
-      brokers: 127.0.0.1
-      defaultBrokerPort: 9092
-
-management:
-  endpoints:
-    web:
-      exposure.include: "*"
-      base-path: /actuator
-      path-mapping:
-        health: health
-    health.show-details: "ALWAYS"
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-    initialInstanceInfoReplicationIntervalSeconds: 5
-    registryFetchIntervalSeconds: 5
-  instance:
-    leaseRenewalIntervalInSeconds: 5
-    leaseExpirationDurationInSeconds: 5
+spring.cloud.stream.kafka.binder:
+  brokers: 127.0.0.1
+  defaultBrokerPort: 9092

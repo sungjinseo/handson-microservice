@@ -14,7 +14,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
-import static reactor.core.publisher.Mono.error;
+import static java.util.logging.Level.FINE;
 
 @RestController
 public class ProductServiceImpl implements ProductService {
@@ -45,19 +45,21 @@ public class ProductServiceImpl implements ProductService {
      * @return
      */
     @Override
-    public ProductDto createProduct(ProductDto body) {
+    public Mono<ProductDto> createProduct(ProductDto body) {
 
-        if (body.productId() < 1) throw new InvalidInputException("Invalid productId: " + body.productId());
+        if (body.productId() < 1) {
+            throw new InvalidInputException("Invalid productId: " + body.productId());
+        }
 
         ProductEntity entity = mapper.apiToEntity(body);
         Mono<ProductDto> newEntity = repository.save(entity)
-                .log()
+                .log(LOGGER.getName(), FINE)
                 .onErrorMap(
                         DuplicateKeyException.class,
                         ex -> new InvalidInputException("Duplicate key, Product Id: " + body.productId()))
                 .map(e -> mapper.entityToApi(e));
 
-        return newEntity.block();
+        return newEntity;
 
     }
 
@@ -71,11 +73,11 @@ public class ProductServiceImpl implements ProductService {
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
         return repository.findByProductId(productId)
-                .switchIfEmpty(error(new NotFoundException("No product found for productId: " + productId)))
-                .log()
+                .switchIfEmpty(Mono.error(new NotFoundException("No product found for productId: " + productId)))
+                .log(LOGGER.getName(), FINE)
                 .map(e -> mapper.entityToApi(e))
                 .map(e -> {
-                    LOGGER.info("Find the item : {}",e.toString());
+                    LOGGER.info("Find the item : {}", e.toString());
                     return new ProductDto(e.productId(), e.name(), e.weight(), serviceUtil.getServiceAddress());
                 });
 
@@ -89,11 +91,16 @@ public class ProductServiceImpl implements ProductService {
      * @param productId
      */
     @Override
-    public void deleteProduct(int productId) {
-        if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
+    public Mono<Void> deleteProduct(int productId) {
+
+        if (productId < 1) {
+            throw new InvalidInputException("Invalid productId: " + productId);
+        }
 
         LOGGER.debug("deleteProduct: tries to delete an entity with productId: {}", productId);
-        repository.findByProductId(productId).log().map(e -> repository.delete(e)).flatMap(e -> e).block();
-
+        return repository.findByProductId(productId)
+                .log(LOGGER.getName(), FINE)
+                .map(e -> repository.delete(e))
+                .flatMap(e -> e);
     }
 }

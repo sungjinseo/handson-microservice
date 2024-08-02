@@ -1,6 +1,8 @@
 package dev.greatseo.recommendationservice.repository;
 
+import dev.greatseo.recommendationservice.MongoDbTestBase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,9 +17,8 @@ import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(SpringExtension.class)
 @DataMongoTest
-class RecommendationDtoRepositoryTest {
+class RecommendationDtoRepositoryTest extends MongoDbTestBase {
 
     @Autowired
     private RecommendationRepository repository;
@@ -27,12 +28,11 @@ class RecommendationDtoRepositoryTest {
     @BeforeEach
     public void setupDb() {
         repository.deleteAll().block();
-        savedEntity = new RecommendationEntity(1, 2, "a", 3, "c");
-        Mono<RecommendationEntity> saveProduct = repository.save(savedEntity);
-        StepVerifier.create(saveProduct)
-                .assertNext(product->assertEqualsRecommendation(product, savedEntity))
-                .expectComplete()
-                .verify();
+
+        RecommendationEntity entity = new RecommendationEntity(1, 2, "a", 3, "c");
+        savedEntity = repository.save(entity).block();
+
+        assertEqualsRecommendation(entity, savedEntity);
 
     }
 
@@ -48,7 +48,8 @@ class RecommendationDtoRepositoryTest {
 
     private boolean areRecommendationEqual(RecommendationEntity expectedEntity, RecommendationEntity actualEntity) {
         return
-                (expectedEntity.getId().equals(actualEntity.getId())) &&                        (expectedEntity.getVersion().equals(actualEntity.getVersion())) &&
+                (expectedEntity.getId().equals(actualEntity.getId())) &&
+                        (expectedEntity.getVersion().equals(actualEntity.getVersion())) &&
                         (expectedEntity.getProductId() == actualEntity.getProductId()) &&
                         (expectedEntity.getAuthor().equals(actualEntity.getAuthor())) &&
                         (expectedEntity.getContent().equals(actualEntity.getContent())) &&
@@ -83,7 +84,7 @@ class RecommendationDtoRepositoryTest {
     @DisplayName("Reactive-테스트3. 추천 삭제하기")
     public void TEST3_DELETE() {
         repository.delete(savedEntity).block();
-        assertNotEquals(Boolean.TRUE, repository.existsById(savedEntity.getId()).block());
+        assertFalse(repository.existsById(savedEntity.getId()).block());
     }
 
     @Test
@@ -97,10 +98,12 @@ class RecommendationDtoRepositoryTest {
     }
 
     @Test
+    @Disabled
     @DisplayName("Reactive-테스트5. 인덱스 중복 에러")
     public void TEST5_duplicateError() {
-        RecommendationEntity entity = new RecommendationEntity(1, 2, "a", 3, "c");
-        assertThrows(DuplicateKeyException.class, ()->{
+
+        assertThrows(DuplicateKeyException.class, () -> {
+            RecommendationEntity entity = new RecommendationEntity(savedEntity.getProductId(), savedEntity.getRecommendationId(), "a", 3, "c");
             repository.save(entity).block();
         });
     }

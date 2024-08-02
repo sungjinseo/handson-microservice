@@ -1,3 +1,10 @@
+if [[ $@ == *"build"* ]]
+then
+    echo "docker infra building..."
+    docker compose -f ./docker-infra/docker-compose-database.yaml -f ./docker-infra/docker-compose-broker.yaml build
+    docker compose -f ./cloud/docker-compose-cloud.yaml build
+fi
+
 if [[ $@ == *"up"* ]]
 then
     echo "docker infra starting..."
@@ -11,4 +18,3 @@ then
     docker compose -f ./docker-infra/docker-compose-database.yaml -f ./docker-infra/docker-compose-broker.yaml down
     docker compose -f ./cloud/docker-compose-cloud.yaml down
 fi
-

@@ -15,8 +15,10 @@ import dev.greatseo.util.http.HttpErrorInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -26,6 +28,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -45,21 +48,32 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objMapper;
     private final StreamBridge streamBridge;
+    private final Scheduler publishEventScheduler;
 
     private static final String PRODUCT_PUBLISH = "product-out-0";
     private static final String RECOMMENDATION_PUBLISH = "recommendation-out-0";
     private static final String REVIEWS_PUBLISH = "review-out-0";
+
 
     private final String productServiceUrl = "http://product:8080/";
     private final String recommendationServiceUrl = "http://recommendation/";
     private final String reviewServiceUrl = "http://review/";;
 
     @Autowired
-    public ProductCompositeIntegration(WebClient.Builder webClientBuilder, ObjectMapper objMapper, StreamBridge streamBridge
+    public ProductCompositeIntegration(@Qualifier("publishEventScheduler") Scheduler publishEventScheduler, WebClient.Builder webClientBuilder, ObjectMapper objMapper, StreamBridge streamBridge
     ) {
+        this.publishEventScheduler = publishEventScheduler;
         this.webClientBuilder = webClientBuilder;
         this.objMapper = objMapper;
         this.streamBridge = streamBridge;
+    }
+
+    private void sendMessage(String bindingName, Event event) {
+        LOGGER.debug("Sending a {} message to {}", event.getEventType(), bindingName);
+        Message message = MessageBuilder.withPayload(event)
+                .setHeader("partitionKey", event.getKey())
+                .build();
+        streamBridge.send(bindingName, message);
     }
 
     /**
@@ -73,24 +87,29 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
      * @return
      */
     @Override
-    public ProductDto createProduct(ProductDto body) {
-        try {
-
-            ObjectMapper mapper = new ObjectMapper();
-            final String messageKey = UUID.randomUUID().toString();
-            streamBridge.send(PRODUCT_PUBLISH
-                    , MessageBuilder
-                            .withPayload(new Event(Event.Type.CREATE, body.productId(), mapper.writeValueAsString(body)))
-                            .setHeader("MESSAGE_KEY", messageKey)
-                            .build());
-            LOGGER.info("Publish the product by msgKey test value: {}", messageKey);
+    public Mono<ProductDto> createProduct(ProductDto body) {
+        return Mono.fromCallable(() -> {
+            sendMessage(PRODUCT_PUBLISH, new Event(Event.Type.CREATE, body.productId(), body));
             return body;
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        })
+                .subscribeOn(publishEventScheduler);
+//        try {
+//
+//            ObjectMapper mapper = new ObjectMapper();
+//            final String messageKey = UUID.randomUUID().toString();
+//            streamBridge.send(PRODUCT_PUBLISH
+//                    , MessageBuilder
+//                            .withPayload(new Event(Event.Type.CREATE, body.productId(), mapper.writeValueAsString(body)))
+//                            .setHeader("MESSAGE_KEY", messageKey)
+//                            .build());
+//            LOGGER.info("Publish the product by msgKey test value: {}", messageKey);
+//            return body;
+//
+//        } catch (HttpClientErrorException ex) {
+//            throw handleHttpClientException(ex);
+//        } catch (JsonProcessingException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     /**
@@ -126,19 +145,12 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
      * @param productId
      */
     @Override
-    public void deleteProduct(int productId) {
-        try {
-            final String messageKey = UUID.randomUUID().toString();
-            streamBridge.send(PRODUCT_PUBLISH
-                    , MessageBuilder
-                            .withPayload(new Event(Event.Type.DELETE, productId, null))
-                            .setHeader("MESSAGE_KEY", messageKey)
-                            .build());
-            LOGGER.info("Publish the product by msgKey test value: {}", messageKey);
-
-        } catch (HttpClientErrorException ex) {
-            throw handleHttpClientException(ex);
-        }
+    public Mono<Void> deleteProduct(int productId) {
+        return Mono.fromRunnable(() -> {
+            sendMessage("products-out-0", new Event(Event.Type.DELETE, productId, null));
+        })
+                .subscribeOn(publishEventScheduler)
+                .then();
     }
 
     /**

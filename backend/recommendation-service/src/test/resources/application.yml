@@ -4,10 +4,10 @@ spring:
       enabled: false
   data:
     mongodb:
-      auto-index-creation: true
-      authentication-database: admin
+      #auto-index-creation: true
+      #authentication-database: admin
       host: localhost
       port: 3003
-      database: greatseo
-      username: greatseo
-      password: greatseo
+      database: recommendation-db
+      #username: greatseo
+      #password: greatseo

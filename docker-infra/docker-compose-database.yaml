@@ -15,16 +15,30 @@ services:
     #restart: always
   mongo:
     container_name: r2dbc-mongo
-    image: mongo
+    image: mongo:6.0.4
+    mem_limit: 512m
     ports:
       - ${MONGO_BINDING_PORT}:27017
     volumes:
       - ${MONGO_DATA_PATH}:/data/db
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
-      #restart: always
+    command: mongod
+    healthcheck:
+      test: "mongostat -n 1"
+      interval: 5s
+      timeout: 2s
+      retries: 60
+#  mongo:
+#    container_name: r2dbc-mongo
+#    image: mongo
+#    ports:
+#      - ${MONGO_BINDING_PORT}:27017
+#    volumes:
+#      - ${MONGO_DATA_PATH}:/data/db
+#    environment:
+#      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+#      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+#      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+#      #restart: always
 networks:
   default:
     name: greatseo

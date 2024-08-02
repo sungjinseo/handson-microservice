@@ -1,46 +1,31 @@
-server:
-  port: 8080
-
 spring:
   config:
     activate:
       on-profile: docker
 
-  data:
-    mongodb:
-      auto-index-creation: true
-      authentication-database: admin
-      host: r2dbc-mongo
-      port: 27017
-      database: greatseo
-      username: greatseo
-      password: greatseo
+server:
+  port: 8080
 
-  rabbitmq:
-    host: rabbit-haproxy
-    port: 5672
-    username: greatseo
-    password: greatseo
+app:
+  eureka-username: u
+  eureka-password: p
+  eureka-server: eureka
 
-  cloud.stream:
-    defaultBinder: rabbit
-    bindings:
-      recommendation-in-0:
-        destination: recommendation
-        group: recommendationGroup
-        consumer:
-          retry-template-name: defaultRetryTemplate #<retry-template-bean 명 등록>
-    kafka.binder:
-      brokers: 127.0.0.1
-      defaultBrokerPort: 9092
+spring.data:
+  mongodb:
+    #auto-index-creation: true
+    #authentication-database: admin
+    host: r2dbc-mongo
+    port: 27017
+    database: recommendation-db
+    #username: greatseo
 
-management:
-  endpoints:
-    web:
-      exposure.include: "*"
-      base-path: /actuator
-      path-mapping:
-        health: health
-    health.show-details: "ALWAYS"
+spring.rabbitmq:
+  host: rabbit-haproxy
+  port: 5672
+  username: greatseo
+  password: greatseo
 
-eureka.client.serviceUrl.defaultZone: http://eureka:8761/eureka/
+spring.cloud.stream.kafka.binder:
+  brokers: kafka
+  defaultBrokerPort: 9092

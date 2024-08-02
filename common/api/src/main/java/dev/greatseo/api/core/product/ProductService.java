@@ -22,7 +22,7 @@ public interface ProductService {
             consumes = "application/json",
             produces = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
-    ProductDto createProduct(@RequestBody ProductDto body);
+    Mono<ProductDto> createProduct(@RequestBody ProductDto body);
 
     /**
      * Sample usage: curl $HOST:$PORT/product/1
@@ -44,5 +44,5 @@ public interface ProductService {
      * @param productId
      */
     @DeleteMapping(value = "/{productId}")
-    void deleteProduct(@PathVariable int productId);
+    Mono<Void> deleteProduct(@PathVariable int productId);
 }

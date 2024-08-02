@@ -5,7 +5,48 @@ spring:
     active:
       - local
 
+spring.cloud:
+  function.definition: messageProcessor
+
+  stream:
+    defaultBinder: rabbit
+    default.contentType: application/json
+    bindings.messageProcessor-in-0:
+      destination: products
+      group: productsGroup
+    bindings.messageProcessor-in-0.consumer:
+      maxAttempts: 3
+      backOffInitialInterval: 500
+      backOffMaxInterval: 1000
+      backOffMultiplier: 2.0
+    messageProcessor-in-0.consumer:
+      autoBindDlq: true
+      republishToDlq: true
+
+    kafka.bindings.messageProcessor-in-0.consumer:
+      enableDlq: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: "http://${app.eureka-username}:${app.eureka-password}@${app.eureka-server}:8761/eureka/"
+    initialInstanceInfoReplicationIntervalSeconds: 5
+    registryFetchIntervalSeconds: 5
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 5
+
+management:
+  endpoints:
+    web:
+      exposure.include: "*"
+      base-path: /actuator
+      path-mapping:
+        health: health
+    health.show-details: "ALWAYS"
+
 logging:
   level:
     root: INFO
-    dev.greatseo.backend: DEBUG
+    dev.greatseo: DEBUG
+    org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG

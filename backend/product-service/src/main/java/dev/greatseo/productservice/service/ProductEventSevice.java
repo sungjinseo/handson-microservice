@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.greatseo.api.core.product.ProductDto;
 import dev.greatseo.api.core.product.ProductService;
 import dev.greatseo.api.event.Event;
+import dev.greatseo.util.exceptions.EventProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,36 @@ public class ProductEventSevice {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
+        };
+    }
+
+    @Bean
+    public Consumer<Event<Integer, ProductDto>> messageProcessor() {
+        return event -> {
+            LOGGER.info("Process message created at {}...", event.getEventCreatedTime());
+
+            switch (event.getEventType()) {
+
+                case CREATE:
+                    ProductDto product = event.getValue();
+                    LOGGER.info("Create product with ID: {}", product.productId());
+                    productService.createProduct(product).block();
+                    break;
+
+                case DELETE:
+                    int productId = event.getKey();
+                    LOGGER.info("Delete product with ProductID: {}", productId);
+                    productService.deleteProduct(productId).block();
+                    break;
+
+                default:
+                    String errorMessage = "Incorrect event type: " + event.getEventType() + ", expected a CREATE or DELETE event";
+                    LOGGER.warn(errorMessage);
+                    throw new EventProcessingException(errorMessage);
+            }
+
+            LOGGER.info("Message processing done!");
+
         };
     }
 }

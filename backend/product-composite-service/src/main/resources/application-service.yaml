@@ -2,21 +2,14 @@ spring:
   config:
     activate:
       on-profile: local
+
 server:
   port: 7000
 
-spring.cloud.stream:
-  defaultBinder: rabbit
-  bindings:
-    product-out-0:
-      destination: product
-      content-type: application/json
-    recommendation-out-0:
-      destination: recommendation
-      content-type: application/json
-    review-out-0:
-      destination: review
-      content-type: application/json
+app:
+  eureka-username: u
+  eureka-password: p
+  eureka-server: localhost
 
 spring.rabbitmq:
   host: 127.0.0.1
@@ -24,29 +17,9 @@ spring.rabbitmq:
   username: greatseo
   password: greatseo
 
-management:
-  health:
-    externalApiHealthStatus:
-      enabled: true
-    ping:
-      enabled: true
-  endpoint:
-    health:
-      show-details: always
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-    initialInstanceInfoReplicationIntervalSeconds: 5
-    registryFetchIntervalSeconds: 5
-  instance:
-    leaseRenewalIntervalInSeconds: 5
-    leaseExpirationDurationInSeconds: 5
+spring.cloud.stream.kafka.binder:
+  brokers: 127.0.0.1
+  defaultBrokerPort: 9092
 
 ---
 spring:
@@ -54,42 +27,20 @@ spring:
     activate:
       on-profile: docker
 
-  cloud.stream:
-    defaultBinder: rabbit
-    default.contentType: application/json
-    bindings:
-      product-out-0:
-        destination: product
-        content-type: application/json
-      recommendation-out-0:
-        destination: recommendation
-        content-type: application/json
-      review-out-0:
-        destination: review
-        content-type: application/json
-
-  rabbitmq:
-    host: rabbit-haproxy
-    port: 5672
-    username: greatseo
-    password: greatseo
-  cloud.stream.kafka.binder.brokers: kafka
-
-management:
-  health:
-    externalApiHealthStatus:
-      enabled: true
-    ping:
-      enabled: true
-  endpoint:
-    health:
-      show-details: always
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-
 server:
   port: 8080
 
-eureka.client.serviceUrl.defaultZone: http://eureka:8761/eureka/
+app:
+  eureka-username: u
+  eureka-password: p
+  eureka-server: eureka
+
+spring.rabbitmq:
+  host: rabbit-haproxy
+  port: 5672
+  username: greatseo
+  password: greatseo
+
+spring.cloud.stream.kafka.binder:
+  brokers: kafka
+  defaultBrokerPort: 9092

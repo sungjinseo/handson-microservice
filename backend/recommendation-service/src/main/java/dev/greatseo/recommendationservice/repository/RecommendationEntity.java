@@ -16,6 +16,7 @@ public class RecommendationEntity {
 
     private int productId;
     private int recommendationId;
+
     private String author;
     private int rating;
     private String content;
